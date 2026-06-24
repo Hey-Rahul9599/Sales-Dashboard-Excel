@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sales Intelligence Dashboard 2025</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #222636;
+    --border: #2e3250;
+    --accent: #6c63ff;
+    --accent2: #00d4aa;
+    --accent3: #ff6b6b;
+    --accent4: #ffd166;
+    --text: #e8eaf6;
+    --text2: #8891b0;
+    --text3: #5a6080;
+    --green: #00d4aa;
+    --red: #ff6b6b;
+    --yellow: #ffd166;
+    --purple: #6c63ff;
+    --blue: #4fc3f7;
+    --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    --radius: 12px;
+    --shadow: 0 4px 24px rgba(0,0,0,0.3);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100vh; }
+
+  /* HEADER */
+  .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 60px; position: sticky; top: 0; z-index: 100; }
+  .header-left { display: flex; align-items: center; gap: 12px; }
+  .logo { width: 32px; height: 32px; background: linear-gradient(135deg, var(--accent), var(--accent2)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+  .header-title { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
+  .header-subtitle { font-size: 11px; color: var(--text3); }
+  .header-right { display: flex; align-items: center; gap: 8px; }
+  .badge { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px; font-size: 11px; color: var(--text2); }
+  .badge-green { border-color: var(--green); color: var(--green); }
+
+  /* FILTERS */
+  .filters { background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 24px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+  .filter-group { display: flex; flex-direction: column; gap: 3px; }
+  .filter-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; }
+  select, input[type=date] { background: var(--surface2); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 6px 10px; font-size: 12px; font-family: var(--font); cursor: pointer; outline: none; }
+  select:hover, input[type=date]:hover { border-color: var(--accent); }
+  .filter-reset { background: var(--accent); color: white; border: none; border-radius: 6px; padding: 7px 14px; font-size: 12px; cursor: pointer; font-family: var(--font); white-space: nowrap; }
+  .filter-reset:hover { opacity: 0.9; }
+  .filter-info { margin-left: auto; font-size: 11px; color: var(--text3); white-space: nowrap; }
+
+  /* MAIN */
+  .main { padding: 20px 24px; max-width: 1600px; margin: 0 auto; }
+
+  /* KPI CARDS */
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+  .kpi-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; position: relative; overflow: hidden; transition: border-color 0.2s; }
+  .kpi-card:hover { border-color: var(--accent); }
+  .kpi-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; border-radius: var(--radius) var(--radius) 0 0; }
+  .kpi-card:nth-child(1)::before { background: var(--accent); }
+  .kpi-card:nth-child(2)::before { background: var(--accent2); }
+  .kpi-card:nth-child(3)::before { background: var(--yellow); }
+  .kpi-card:nth-child(4)::before { background: var(--blue); }
+  .kpi-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
+  .kpi-value { font-size: 28px; font-weight: 700; letter-spacing: -1px; margin-bottom: 6px; }
+  .kpi-sub { font-size: 12px; color: var(--text2); display: flex; align-items: center; gap: 4px; }
+  .kpi-icon { position: absolute; right: 20px; top: 20px; font-size: 24px; opacity: 0.15; }
+  .up { color: var(--green); }
+  .down { color: var(--red); }
+
+  /* CHART GRIDS */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .span-2 { grid-column: span 2; }
+
+  /* CHART CARDS */
+  .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+  .chart-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .chart-title { font-size: 13px; font-weight: 600; color: var(--text); }
+  .chart-subtitle { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .chart-badge { background: var(--surface2); border: 1px solid var(--border); border-radius: 4px; padding: 2px 8px; font-size: 10px; color: var(--text2); }
+  .chart-wrap { position: relative; }
+  .chart-wrap canvas { max-height: 280px; }
+
+  /* TABLE */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th { text-align: left; padding: 8px 12px; color: var(--text3); font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  td { padding: 9px 12px; border-bottom: 1px solid rgba(46,50,80,0.5); color: var(--text2); }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--surface2); color: var(--text); }
+  .rank-badge { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; font-size: 10px; font-weight: 700; }
+  .rank-1 { background: rgba(255,209,102,0.2); color: var(--yellow); }
+  .rank-2 { background: rgba(140,140,160,0.2); color: #a0a0b0; }
+  .rank-3 { background: rgba(150,80,40,0.2); color: #cd7f32; }
+  .rank-n { background: rgba(255,107,107,0.1); color: var(--red); }
+  .bar-cell { display: flex; align-items: center; gap: 8px; }
+  .mini-bar { height: 6px; border-radius: 3px; background: var(--accent); opacity: 0.7; flex-shrink: 0; }
+  .mini-bar.red { background: var(--red); }
+  .profit-margin { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; }
+  .margin-high { background: rgba(0,212,170,0.15); color: var(--green); }
+  .margin-mid { background: rgba(255,209,102,0.15); color: var(--yellow); }
+  .margin-low { background: rgba(255,107,107,0.15); color: var(--red); }
+
+  /* SECTION HEADINGS */
+  .section-heading { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; margin-top: 4px; display: flex; align-items: center; gap: 8px; }
+  .section-heading::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  /* SCATTER */
+  .scatter-legend { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 8px; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text2); }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  /* RESPONSIVE */
+  @media (max-width: 1200px) { .kpi-grid { grid-template-columns: repeat(2,1fr); } .grid-3 { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 768px) { .kpi-grid { grid-template-columns: 1fr 1fr; } .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; } .span-2 { grid-column: 1; } .main { padding: 12px; } .filters { gap: 8px; } }
+  @media (max-width: 480px) { .kpi-grid { grid-template-columns: 1fr; } .kpi-value { font-size: 22px; } }
+
+  /* TOOLTIP */
+  .custom-tooltip { position: absolute; background: #1a1d27; border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; font-size: 11px; color: var(--text); pointer-events: none; white-space: nowrap; z-index: 999; box-shadow: var(--shadow); }
+
+  /* LOADING */
+  #loading { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; gap: 12px; }
+  .spinner { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .fade-in { animation: fadeIn 0.4s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="spinner"></div>
+  <div style="font-size:13px;color:var(--text3)">Loading dashboard…</div>
+</div>
+
+<div id="app" style="display:none">
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <div class="logo">📊</div>
+    <div>
+      <div class="header-title">Sales Intelligence 2025</div>
+      <div class="header-subtitle">Interactive Business Dashboard</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <span class="badge">Jan – Oct 2025</span>
+    <span class="badge badge-green" id="record-count">999 Records</span>
+  </div>
+</div>
+
+<!-- FILTERS -->
+<div class="filters">
+  <div class="filter-group">
+    <div class="filter-label">From Date</div>
+    <input type="date" id="date-from" value="2025-01-01">
+  </div>
+  <div class="filter-group">
+    <div class="filter-label">To Date</div>
+    <input type="date" id="date-to" value="2025-10-31">
+  </div>
+  <div class="filter-group">
+    <div class="filter-label">City</div>
+    <select id="filter-city"><option value="">All Cities</option></select>
+  </div>
+  <div class="filter-group">
+    <div class="filter-label">Category</div>
+    <select id="filter-cat"><option value="">All Categories</option></select>
+  </div>
+  <div class="filter-group">
+    <div class="filter-label">Sales Rep</div>
+    <select id="filter-rep"><option value="">All Reps</option></select>
+  </div>
+  <button class="filter-reset" onclick="resetFilters()">↺ Reset</button>
+  <div class="filter-info" id="filter-info">Showing all 999 orders</div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main">
+
+  <!-- KPI ROW -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-icon">💰</div>
+      <div class="kpi-label">Total Sales Revenue</div>
+      <div class="kpi-value" id="kpi-sales">₹0</div>
+      <div class="kpi-sub"><span id="kpi-sales-sub">—</span></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon">📈</div>
+      <div class="kpi-label">Total Profit</div>
+      <div class="kpi-value" id="kpi-profit">₹0</div>
+      <div class="kpi-sub"><span id="kpi-profit-margin">—</span></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon">🛒</div>
+      <div class="kpi-label">Total Orders</div>
+      <div class="kpi-value" id="kpi-orders">0</div>
+      <div class="kpi-sub"><span id="kpi-units">—</span></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon">⚡</div>
+      <div class="kpi-label">Avg Order Value</div>
+      <div class="kpi-value" id="kpi-aov">₹0</div>
+      <div class="kpi-sub"><span id="kpi-aov-sub">—</span></div>
+    </div>
+  </div>
+
+  <!-- ROW 1: Monthly Trend + City Sales -->
+  <div class="section-heading">Sales Performance</div>
+  <div class="grid-2" style="margin-bottom:16px">
+    <div class="chart-card span-2" style="grid-column:1/-1">
+      <div class="chart-header">
+        <div><div class="chart-title">Monthly Sales & Profit Trend</div><div class="chart-subtitle">Revenue vs profit over time</div></div>
+        <span class="chart-badge">Line Chart</span>
+      </div>
+      <div class="chart-wrap"><canvas id="chart-monthly"></canvas></div>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="chart-card">
+      <div class="chart-header">
+        <div><div class="chart-title">City-wise Sales</div><div class="chart-subtitle">Total revenue by city</div></div>
+        <span class="chart-badge">Bar Chart</span>
+      </div>
+      <div class="chart-wrap"><canvas id="chart-city"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-header">
+        <div><div class="chart-title">Category Performance</div><div class="chart-subtitle">Sales vs Profit by category</div></div>
+        <span class="chart-badge">Bar Chart</span>
+      </div>
+      <div class="chart-wrap"><canvas id="chart-category"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ROW 2: Rep Performance + Payment Dist -->
+  <div class="section-heading">Team & Payments</div>
+  <div class="grid-2">
+    <div class="chart-card">
+      <div class="chart-header">
+        <div><div class="chart-title">Sales Rep Performance</div><div class="chart-subtitle">Sales & profit per rep</div></div>
+        <span class="chart-badge">Bar Chart</span>
+      </div>
+      <div class="chart-wrap"><canvas id="chart-rep"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-header">
+        <div><div class="chart-title">Payment Method Distribution</div><div class="chart-subtitle">Orders by payment type</div></div>
+        <span class="chart-badge">Doughnut</span>
+      </div>
+      <div class="chart-wrap" style="max-height:280px;display:flex;align-items:center;justify-content:center">
+        <canvas id="chart-payment" style="max-height:260px;max-width:260px"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROW 3: Advanced Insights -->
+  <div class="section-heading">Advanced Insights</div>
+  <div class="grid-2">
+    <div class="chart-card">
+      <div class="chart-header">
+        <div><div class="chart-title">Profitability Analysis</div><div class="chart-subtitle">Profit vs Sales by category</div></div>
+        <span class="chart-badge">Bubble</span>
+      </div>
+      <div class="chart-wrap"><canvas id="chart-profitability"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-header">
+        <div><div class="chart-title">Discount Impact on Profit</div><div class="chart-subtitle">Avg profit margin by discount level</div></div>
+        <span class="chart-badge">Bar Chart</span>
+      </div>
+      <div class="chart-wrap"><canvas id="chart-discount"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ROW 4: Top/Bottom Products -->
+  <div class="section-heading">Product Rankings</div>
+  <div class="grid-2">
+    <div class="chart-card">
+      <div class="chart-header">
+        <div><div class="chart-title">🏆 Top 5 Products by Sales</div><div class="chart-subtitle">Highest revenue generating products</div></div>
+      </div>
+      <div class="table-wrap"><table id="table-top5"></table></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-header">
+        <div><div class="chart-title">⚠️ Bottom 5 Products by Sales</div><div class="chart-subtitle">Lowest revenue generating products</div></div>
+      </div>
+      <div class="table-wrap"><table id="table-bottom5"></table></div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<script>
+// ─── RAW DATA ───────────────────────────────────────────────────────────────
+// Fields: [id, date, city, category, product, rep, total_sales, payment, discount, profit, units]
+const RAW = [["1001","2025-01-01","Hyderabad","Electronics","Headphones","Sneha",73443.6,"Credit Card",10.0,21019.15,4],["1002","2025-01-01","Delhi","Electronics","Headphones","Ajay",66424.0,"Cash",5.0,15368.62,4],["1003","2025-01-01","Hyderabad","Furniture","Sofa","Rahul",18542.7,"Debit Card",10.0,3595.24,1],["1004","2025-01-02","Hyderabad","Clothing","T-Shirt","Rahul",71574.0,"Debit Card",0.0,10999.85,2],["1005","2025-01-02","Mumbai","Furniture","Sofa","Pooja",206980.0,"Cash",0.0,34168.81,5],["1006","2025-01-03","Hyderabad","Furniture","Chair","Ajay",157960.0,"Debit Card",0.0,21390.53,5],["1007","2025-01-03","Pune","Electronics","Headphones","Rahul",113745.0,"Cash",0.0,30022.96,3],["1008","2025-01-04","Mumbai","Electronics","Headphones","Rahul",36916.05,"UPI",5.0,6036.85,1],["1009","2025-01-04","Mumbai","Clothing","Jeans","Sneha",71020.8,"UPI",10.0,8473.11,3],["1010","2025-01-04","Mumbai","Clothing","Jacket","Rahul",67974.5,"Debit Card",15.0,12850.43,5],["1011","2025-01-05","Mumbai","Electronics","Headphones","Ajay",58587.45,"Debit Card",5.0,6595.92,3],["1012","2025-01-05","Hyderabad","Electronics","Laptop","Ajay",1829.7,"Credit Card",5.0,199.21,1],["1013","2025-01-05","Bangalore","Electronics","Mobile","Pooja",80271.2,"Cash",5.0,15340.73,4],["1014","2025-01-05","Mumbai","Furniture","Sofa","Sneha",129538.8,"Credit Card",10.0,21019.95,4],["1015","2025-01-06","Mumbai","Electronics","Headphones","Ajay",82834.0,"Credit Card",0.0,13758.71,2],["1016","2025-01-06","Pune","Furniture","Table","Rahul",12194.0,"UPI",0.0,2550.47,1],["1017","2025-01-06","Delhi","Clothing","Jeans","Sneha",141835.5,"Credit Card",10.0,21722.95,5],["1018","2025-01-06","Delhi","Furniture","Table","Rahul",42340.0,"Cash",0.0,5531.83,5],["1019","2025-01-06","Hyderabad","Furniture","Sofa","Rahul",8504.0,"Credit Card",0.0,1015.88,2],["1020","2025-01-07","Mumbai","Furniture","Sofa","Pooja",21092.85,"UPI",5.0,3948.81,3],["1021","2025-01-07","Mumbai","Furniture","Sofa","Rahul",122557.5,"Debit Card",10.0,22166.05,5],["1022","2025-01-07","Hyderabad","Clothing","Jacket","Ajay",84360.0,"Debit Card",5.0,18150.33,3],["1023","2025-01-08","Pune","Furniture","Sofa","Sneha",12491.6,"Credit Card",15.0,2919.66,4],["1024","2025-01-08","Hyderabad","Electronics","Headphones","Ajay",41440.9,"Debit Card",5.0,4574.51,1],["1025","2025-01-08","Mumbai","Clothing","T-Shirt","Rahul",79872.2,"UPI",5.0,13347.19,4],["1026","2025-01-09","Bangalore","Electronics","Headphones","Sneha",22720.5,"Credit Card",15.0,2603.14,5],["1027","2025-01-09","Delhi","Clothing","Jacket","Sneha",36769.75,"Credit Card",5.0,8869.92,1],["1028","2025-01-09","Pune","Furniture","Table","Rahul",41899.5,"Credit Card",10.0,4666.68,5],["1029","2025-01-09","Mumbai","Furniture","Sofa","Rahul",54716.4,"Cash",10.0,12834.94,2],["1030","2025-01-09","Delhi","Electronics","Mobile","Ajay",131152.5,"Credit Card",10.0,13842.6,3],["1031","2025-01-10","Mumbai","Electronics","Mobile","Ajay",14666.0,"Cash",0.0,2772.92,1],["1032","2025-01-10","Pune","Electronics","Mobile","Ajay",93732.0,"Credit Card",0.0,26963.14,4],["1033","2025-01-10","Hyderabad","Clothing","Jacket","Pooja",137271.6,"Credit Card",10.0,33440.87,4],["1034","2025-01-10","Mumbai","Clothing","Jeans","Ajay",15138.0,"Cash",0.0,2248.47,3],["1035","2025-01-11","Bangalore","Electronics","Mobile","Pooja",1803.7,"Credit Card",15.0,395.46,2],["1036","2025-01-11","Mumbai","Furniture","Chair","Pooja",46528.2,"Credit Card",10.0,10762.31,2],["1037","2025-01-11","Mumbai","Furniture","Table","Ajay",205615.0,"Credit Card",15.0,34507.8,5],["1038","2025-01-12","Mumbai","Furniture","Sofa","Rahul",29108.0,"UPI",5.0,6701.95,2],["1039","2025-01-12","Delhi","Electronics","Laptop","Ajay",190197.0,"UPI",10.0,25035.77,5],["1040","2025-01-12","Bangalore","Electronics","Mobile","Rahul",124915.5,"Cash",10.0,27202.65,5],["1041","2025-01-13","Pune","Furniture","Chair","Pooja",43060.0,"Debit Card",0.0,6782.52,2],["1042","2025-01-13","Pune","Furniture","Sofa","Rahul",29076.65,"Cash",5.0,5647.78,1],["1043","2025-01-13","Bangalore","Clothing","T-Shirt","Ajay",30339.2,"Credit Card",5.0,5120.08,2],["1044","2025-01-14","Mumbai","Clothing","T-Shirt","Pooja",83548.0,"Credit Card",0.0,20356.38,4],["1045","2025-01-14","Hyderabad","Furniture","Table","Rahul",7036.3,"Cash",15.0,762.79,2],["1046","2025-01-14","Pune","Clothing","Jeans","Rahul",119053.8,"UPI",10.0,24583.19,3],["1047","2025-01-14","Hyderabad","Electronics","Mobile","Sneha",130540.5,"UPI",10.0,36300.71,5],["1048","2025-01-14","Pune","Furniture","Table","Ajay",8199.1,"UPI",15.0,1570.19,1],["1049","2025-01-15","Delhi","Electronics","Mobile","Pooja",182911.5,"UPI",10.0,22828.84,5],["1050","2025-01-15","Mumbai","Furniture","Sofa","Ajay",138969.0,"Debit Card",10.0,32156.79,5],["1051","2025-01-15","Delhi","Electronics","Mobile","Pooja",123205.5,"Debit Card",5.0,34405.47,5],["1052","2025-01-15","Hyderabad","Electronics","Mobile","Sneha",66674.0,"Cash",15.0,7773.51,2],["1053","2025-01-16","Bangalore","Electronics","Headphones","Ajay",89486.0,"Debit Card",0.0,23646.05,2],["1054","2025-01-16","Mumbai","Furniture","Sofa","Ajay",34632.25,"UPI",5.0,5846.46,5],["1055","2025-01-16","Mumbai","Electronics","Laptop","Ajay",110580.0,"Debit Card",0.0,16349.37,4],["1056","2025-01-17","Bangalore","Electronics","Mobile","Sneha",56917.35,"Credit Card",5.0,11123.07,3],["1057","2025-01-17","Pune","Clothing","Jeans","Ajay",30321.0,"Debit Card",10.0,7264.76,3],["1058","2025-01-18","Delhi","Electronics","Headphones","Rahul",49092.6,"Credit Card",15.0,6604.66,4],["1059","2025-01-18","Bangalore","Furniture","Sofa","Rahul",12438.0,"Cash",0.0,1759.39,3],["1060","2025-01-18","Delhi","Electronics","Mobile","Rahul",35172.0,"Cash",0.0,4402.43,1],["1061","2025-01-18","Delhi","Clothing","T-Shirt","Ajay",189440.0,"Cash",0.0,34380.83,4],["1062","2025-01-19","Bangalore","Clothing","Jacket","Ajay",14010.6,"Cash",5.0,2180.59,4],["1063","2025-01-19","Bangalore","Furniture","Table","Ajay",73569.2,"Debit Card",15.0,17340.79,2],["1064","2025-01-20","Mumbai","Furniture","Chair","Ajay",42384.4,"Debit Card",15.0,7665.68,1],["1065","2025-01-20","Pune","Clothing","Jacket","Ajay",62181.75,"UPI",15.0,11157.43,5],["1066","2025-01-20","Delhi","Electronics","Headphones","Rahul",103608.0,"Credit Card",0.0,15753.29,4],["1067","2025-01-20","Mumbai","Electronics","Mobile","Rahul",44517.6,"Cash",10.0,7498.97,4],["1068","2025-01-20","Hyderabad","Electronics","Laptop","Pooja",8002.8,"Debit Card",5.0,1382.02,3],["1069","2025-01-21","Hyderabad","Clothing","Jacket","Rahul",199699.5,"Cash",5.0,52990.81,5],["1070","2025-01-21","Delhi","Clothing","Jacket","Ajay",119665.8,"Cash",5.0,24675.29,3],["1071","2025-01-21","Mumbai","Furniture","Sofa","Ajay",88908.6,"UPI",5.0,25213.4,4],["1072","2025-01-21","Pune","Clothing","Jeans","Pooja",69427.9,"Cash",5.0,17517.07,2],["1073","2025-01-21","Pune","Clothing","T-Shirt","Ajay",19890.0,"Cash",0.0,2236.46,3],["1074","2025-01-22","Pune","Clothing","Jacket","Sneha",96509.0,"Debit Card",15.0,19128.68,5],["1075","2025-01-22","Hyderabad","Electronics","Mobile","Rahul",22215.0,"Cash",0.0,2509.85,5],["1076","2025-01-23","Pune","Clothing","Jacket","Ajay",7494.0,"UPI",0.0,1798.74,2],["1077","2025-01-23","Mumbai","Clothing","T-Shirt","Sneha",1876.25,"Credit Card",5.0,193.26,1],["1078","2025-01-23","Mumbai","Furniture","Sofa","Ajay",76831.2,"Debit Card",10.0,10299.05,4],["1079","2025-01-23","Pune","Electronics","Laptop","Sneha",8868.0,"Cash",0.0,1400.86,3],["1080","2025-01-23","Mumbai","Furniture","Sofa","Sneha",105966.0,"Cash",0.0,11695.09,3],["1081","2025-01-24","Pune","Furniture","Sofa","Ajay",156465.0,"UPI",0.0,19054.63,5],["1082","2025-01-24","Pune","Electronics","Headphones","Ajay",95476.25,"Cash",15.0,14260.76,5],["1083","2025-01-25","Hyderabad","Electronics","Laptop","Pooja",214833.0,"Credit Card",5.0,25639.92,5],["1084","2025-01-25","Pune","Furniture","Chair","Pooja",79706.9,"Debit Card",5.0,21630.66,2],["1085","2025-01-25","Delhi","Furniture","Table","Sneha",74457.2,"Debit Card",5.0,20493.79,2],["1086","2025-01-25","Bangalore","Electronics","Headphones","Pooja",84294.5,"UPI",15.0,20283.25,2],["1087","2025-01-25","Mumbai","Electronics","Mobile","Rahul",193693.75,"Debit Card",15.0,42653.54,5],["1088","2025-01-26","Hyderabad","Electronics","Headphones","Rahul",35550.4,"UPI",15.0,8322.53,2],["1089","2025-01-26","Pune","Electronics","Laptop","Rahul",4291.65,"Debit Card",15.0,1066.16,1],["1090","2025-01-27","Bangalore","Furniture","Sofa","Ajay",177264.0,"UPI",0.0,20667.28,4],["1091","2025-01-27","Mumbai","Clothing","T-Shirt","Pooja",10090.8,"UPI",10.0,2619.54,4],["1092","2025-01-28","Mumbai","Electronics","Laptop","Pooja",129186.0,"Credit Card",10.0,28401.15,4],["1093","2025-01-28","Hyderabad","Furniture","Sofa","Sneha",144516.0,"Credit Card",0.0,26816.05,4],["1094","2025-01-28","Pune","Clothing","T-Shirt","Rahul",235913.5,"UPI",5.0,38290.74,5],["1095","2025-01-28","Hyderabad","Furniture","Chair","Sneha",98015.4,"UPI",10.0,26777.87,3],["1096","2025-01-29","Bangalore","Furniture","Chair","Ajay",9178.2,"UPI",10.0,2116.79,1],["1097","2025-01-29","Mumbai","Clothing","T-Shirt","Rahul",12348.0,"Debit Card",10.0,1532.05,2],["1098","2025-01-29","Mumbai","Furniture","Sofa","Pooja",35150.05,"Cash",15.0,8365.83,1],["1099","2025-01-29","Pune","Electronics","Headphones","Sneha",33117.95,"Credit Card",5.0,3861.66,1],["1100","2025-01-29","Hyderabad","Furniture","Table","Ajay",91629.4,"Cash",5.0,11608.26,2],["1101","2025-01-30","Mumbai","Electronics","Mobile","Pooja",37422.1,"Credit Card",15.0,10465.48,1],["1102","2025-01-30","Hyderabad","Clothing","T-Shirt","Rahul",83332.3,"Debit Card",15.0,14340.04,2],["1103","2025-01-30","Mumbai","Clothing","Jeans","Sneha",68844.0,"Credit Card",0.0,9985.61,3],["1104","2025-01-31","Bangalore","Electronics","Laptop","Ajay",129495.0,"UPI",0.0,34440.49,3],["1105","2025-01-31","Delhi","Furniture","Sofa","Pooja",167203.8,"Cash",5.0,45201.82,4],["1106","2025-01-31","Pune","Electronics","Headphones","Sneha",2226.15,"UPI",15.0,278.85,1],["1107","2025-01-31","Pune","Clothing","Jacket","Ajay",123010.0,"Credit Card",0.0,18890.25,5],["1108","2025-01-31","Pune","Electronics","Headphones","Ajay",17305.2,"UPI",5.0,4683.96,2],["1109","2025-02-01","Bangalore","Furniture","Chair","Rahul",34217.6,"Debit Card",15.0,6140.64,1],["1110","2025-02-01","Mumbai","Furniture","Table","Sneha",19817.0,"UPI",5.0,4228.43,5],["1111","2025-02-01","Delhi","Clothing","T-Shirt","Pooja",18160.0,"UPI",0.0,5080.0,1],["1112","2025-02-01","Mumbai","Clothing","Jacket","Rahul",33498.9,"Credit Card",10.0,5183.22,3],["1113","2025-02-02","Delhi","Furniture","Sofa","Pooja",148146.5,"Credit Card",15.0,41424.84,5],["1114","2025-02-02","Delhi","Furniture","Sofa","Ajay",22534.35,"Cash",15.0,3410.69,1],["1115","2025-02-02","Delhi","Furniture","Table","Ajay",34926.5,"Debit Card",15.0,6368.53,2],["1116","2025-02-02","Bangalore","Electronics","Headphones","Ajay",11434.2,"Debit Card",5.0,2771.42,1],["1117","2025-02-03","Mumbai","Clothing","Jeans","Pooja",12784.0,"UPI",15.0,2048.12,5],["1118","2025-02-03","Mumbai","Furniture","Table","Sneha",23841.0,"UPI",10.0,4063.84,1],["1119","2025-02-03","Hyderabad","Clothing","T-Shirt","Sneha",34123.05,"Cash",5.0,5277.43,3],["1120","2025-02-03","Bangalore","Clothing","Jacket","Ajay",69636.9,"Cash",5.0,15941.5,2],["1121","2025-02-03","Pune","Electronics","Laptop","Rahul",3210.05,"UPI",5.0,325.55,1],["1122","2025-02-04","Bangalore","Electronics","Mobile","Ajay",78296.9,"Cash",15.0,14380.27,2],["1123","2025-02-04","Mumbai","Furniture","Sofa","Ajay",28770.8,"Cash",15.0,7921.53,1],["1124","2025-02-04","Mumbai","Furniture","Table","Ajay",32508.0,"Debit Card",0.0,5387.48,2],["1125","2025-02-04","Hyderabad","Electronics","Mobile","Pooja",107217.0,"UPI",0.0,13764.22,3],["1126","2025-02-04","Delhi","Clothing","Jacket","Rahul",27752.0,"UPI",0.0,6332.09,2],["1127","2025-02-05","Delhi","Clothing","Jeans","Pooja",54324.0,"Debit Card",10.0,15353.64,3],["1128","2025-02-05","Mumbai","Clothing","Jeans","Rahul",68634.0,"UPI",10.0,10167.1,3],["1129","2025-02-06","Delhi","Electronics","Headphones","Pooja",37063.3,"Cash",5.0,6471.59,1],["1130","2025-02-06","Pune","Electronics","Laptop","Sneha",91325.7,"Cash",15.0,24971.52,3],["1131","2025-02-06","Pune","Furniture","Table","Sneha",12285.05,"Debit Card",15.0,2129.42,1],["1132","2025-02-06","Hyderabad","Furniture","Sofa","Ajay",55137.8,"Debit Card",15.0,14835.25,4],["1133","2025-02-07","Mumbai","Furniture","Table","Sneha",25421.4,"UPI",10.0,7479.03,2],["1134","2025-02-07","Bangalore","Furniture","Table","Rahul",164073.8,"Debit Card",15.0,21827.53,4],["1135","2025-02-07","Hyderabad","Furniture","Chair","Pooja",37409.4,"Cash",10.0,7422.77,2],["1136","2025-02-07","Delhi","Electronics","Laptop","Ajay",111888.0,"Credit Card",10.0,16184.9,4],["1137","2025-02-08","Mumbai","Clothing","T-Shirt","Pooja",41040.55,"Cash",15.0,9900.48,1],["1138","2025-02-08","Delhi","Electronics","Laptop","Pooja",24880.5,"Credit Card",10.0,4932.97,3],["1139","2025-02-09","Mumbai","Electronics","Headphones","Rahul",27815.05,"Cash",5.0,3982.97,1],["1140","2025-02-09","Hyderabad","Furniture","Sofa","Rahul",14100.0,"Credit Card",0.0,4082.48,2],["1141","2025-02-09","Pune","Electronics","Mobile","Sneha",34439.4,"Cash",5.0,5545.36,4],["1142","2025-02-09","Delhi","Electronics","Mobile","Pooja",119808.0,"Cash",10.0,32910.49,4],["1143","2025-02-09","Pune","Electronics","Laptop","Pooja",17916.3,"UPI",10.0,4838.12,1],["1144","2025-02-10","Bangalore","Electronics","Headphones","Rahul",116984.0,"UPI",0.0,24786.42,4],["1145","2025-02-10","Delhi","Furniture","Chair","Ajay",12315.6,"Cash",10.0,1800.24,2],["1146","2025-02-10","Pune","Furniture","Sofa","Ajay",8606.0,"UPI",0.0,1040.1,2],["1147","2025-02-10","Bangalore","Electronics","Headphones","Ajay",91377.0,"UPI",10.0,14470.29,5],["1148","2025-02-10","Hyderabad","Clothing","Jacket","Sneha",166382.4,"Credit Card",15.0,27284.08,4],["1149","2025-02-11","Bangalore","Electronics","Headphones","Ajay",130260.0,"Cash",0.0,24112.81,5],["1150","2025-02-11","Bangalore","Electronics","Mobile","Sneha",168925.5,"UPI",10.0,34621.35,5],["1151","2025-02-11","Hyderabad","Electronics","Laptop","Rahul",23902.95,"Debit Card",5.0,5938.24,3],["1152","2025-02-11","Bangalore","Furniture","Sofa","Sneha",57665.0,"Debit Card",5.0,13565.87,5],["1153","2025-02-12","Mumbai","Electronics","Mobile","Ajay",41265.15,"UPI",5.0,9859.88,1],["1154","2025-02-12","Pune","Electronics","Laptop","Rahul",3585.3,"Credit Card",5.0,496.96,1],["1155","2025-02-12","Bangalore","Electronics","Headphones","Ajay",14232.6,"Credit Card",10.0,3276.61,2],["1156","2025-02-13","Delhi","Electronics","Mobile","Rahul",89855.0,"UPI",0.0,17379.34,5],["1157","2025-02-13","Delhi","Clothing","T-Shirt","Pooja",158996.75,"Debit Card",15.0,37533.25,5],["1158","2025-02-13","Delhi","Clothing","T-Shirt","Rahul",73227.6,"Credit Card",10.0,12672.11,4],["1159","2025-02-13","Delhi","Electronics","Mobile","Sneha",136544.0,"Cash",0.0,23431.95,4],["1160","2025-02-14","Bangalore","Furniture","Sofa","Ajay",199237.5,"UPI",10.0,52381.04,5],["1161","2025-02-14","Hyderabad","Clothing","T-Shirt","Ajay",76220.4,"Debit Card",5.0,21117.78,2],["1162","2025-02-15","Pune","Electronics","Headphones","Pooja",30786.3,"Credit Card",10.0,8882.0,1],["1163","2025-02-15","Pune","Electronics","Laptop","Sneha",7703.55,"Credit Card",5.0,2282.88,3],["1164","2025-02-16","Mumbai","Clothing","Jacket","Rahul",61143.9,"UPI",15.0,15926.5,3],["1165","2025-02-16","Bangalore","Electronics","Mobile","Pooja",50469.6,"Cash",15.0,6305.45,2],["1166","2025-02-16","Delhi","Clothing","Jeans","Rahul",122945.7,"Debit Card",15.0,27153.72,3],["1167","2025-02-16","Mumbai","Furniture","Sofa","Pooja",16758.0,"UPI",10.0,4751.79,2],["1168","2025-02-16","Hyderabad","Clothing","Jacket","Rahul",1039.0,"Credit Card",0.0,226.43,1],["1169","2025-02-17","Delhi","Electronics","Headphones","Pooja",41344.0,"Credit Card",5.0,9441.65,5],["1170","2025-02-17","Pune","Clothing","Jeans","Ajay",220414.5,"Debit Card",10.0,65213.25,5],["1171","2025-02-17","Delhi","Clothing","Jeans","Rahul",168211.75,"Debit Card",5.0,41340.9,5],["1172","2025-02-17","Bangalore","Electronics","Laptop","Sneha",3264.0,"Credit Card",15.0,830.38,2],["1173","2025-02-17","Delhi","Furniture","Table","Pooja",141083.55,"Debit Card",5.0,31474.09,3],["1174","2025-02-18","Hyderabad","Electronics","Laptop","Rahul",210335.0,"Credit Card",0.0,37201.68,5],["1175","2025-02-18","Mumbai","Clothing","Jeans","Sneha",92687.7,"Credit Card",5.0,16339.32,3],["1176","2025-02-18","Delhi","Furniture","Chair","Pooja",49990.9,"UPI",5.0,6948.93,2],["1177","2025-02-18","Pune","Clothing","T-Shirt","Pooja",36382.55,"Debit Card",15.0,9797.82,1],["1178","2025-02-19","Hyderabad","Electronics","Laptop","Pooja",77714.75,"UPI",5.0,13574.16,5],["1179","2025-02-19","Hyderabad","Electronics","Laptop","Pooja",109887.15,"Cash",15.0,26194.53,3],["1180","2025-02-19","Bangalore","Clothing","Jacket","Rahul",65807.85,"UPI",15.0,11774.31,3],["1181","2025-02-19","Bangalore","Clothing","T-Shirt","Rahul",40623.3,"UPI",10.0,8566.78,1],["1182","2025-02-20","Mumbai","Furniture","Sofa","Sneha",52907.4,"Cash",10.0,14741.01,2],["1183","2025-02-20","Delhi","Electronics","Headphones","Ajay",170664.0,"Credit Card",0.0,36678.13,4],["1184","2025-02-20","Mumbai","Clothing","Jeans","Rahul",5430.2,"Credit Card",5.0,1240.64,1],["1185","2025-02-21","Mumbai","Furniture","Table","Rahul",67684.65,"UPI",15.0,10257.02,3],["1186","2025-02-21","Pune","Electronics","Laptop","Sneha",7986.0,"Credit Card",0.0,2392.29,2],["1187","2025-02-22","Hyderabad","Electronics","Mobile","Rahul",82546.2,"Cash",10.0,8790.2,2],["1188","2025-02-22","Pune","Furniture","Sofa","Rahul",13014.35,"Credit Card",15.0,3863.6,1],["1189","2025-02-23","Delhi","Electronics","Mobile","Sneha",5016.95,"Debit Card",5.0,1432.92,1],["1190","2025-02-23","Pune","Furniture","Chair","Sneha",76968.0,"UPI",10.0,18302.11,4],["1191","2025-02-23","Hyderabad","Furniture","Sofa","Rahul",29352.0,"Debit Card",0.0,3208.18,2],["1192","2025-02-23","Hyderabad","Clothing","Jacket","Rahul",93301.4,"Debit Card",5.0,11669.03,4],["1193","2025-02-23","Pune","Electronics","Mobile","Sneha",9763.2,"Debit Card",10.0,1638.03,1],["1194","2025-02-24","Delhi","Clothing","Jeans","Rahul",11671.7,"Cash",5.0,2053.81,1],["1195","2025-02-24","Pune","Electronics","Headphones","Sneha",100302.9,"Debit Card",5.0,27257.68,3],["1196","2025-02-24","Pune","Furniture","Sofa","Ajay",65777.25,"Credit Card",15.0,8369.14,5],["1197","2025-02-24","Delhi","Clothing","Jeans","Rahul",7305.5,"Cash",5.0,816.3,1],["1198","2025-02-25","Bangalore","Furniture","Chair","Sneha",19060.2,"Cash",10.0,1953.28,1],["1199","2025-02-25","Pune","Furniture","Chair","Rahul",211945.5,"Cash",10.0,41828.36,5],["1200","2025-02-25","Bangalore","Electronics","Mobile","Pooja",31816.8,"UPI",10.0,4588.15,3],["1201","2025-02-26","Hyderabad","Clothing","Jacket","Ajay",30352.5,"Credit Card",5.0,4941.12,5],["1202","2025-02-26","Delhi","Clothing","Jeans","Sneha",54565.2,"Credit Card",10.0,8723.38,4],["1203","2025-02-26","Pune","Electronics","Mobile","Ajay",28216.9,"Cash",5.0,6446.89,1],["1204","2025-02-27","Pune","Electronics","Laptop","Pooja",29940.0,"UPI",0.0,5452.47,1],["1205","2025-02-27","Pune","Clothing","Jacket","Rahul",2512.0,"Debit Card",0.0,451.68,4],["1206","2025-02-27","Pune","Furniture","Chair","Sneha",86119.4,"Cash",5.0,18465.54,4],["1207","2025-02-28","Pune","Electronics","Headphones","Sneha",1661.75,"UPI",15.0,411.43,1],["1208","2025-02-28","Delhi","Furniture","Sofa","Ajay",105796.8,"Cash",10.0,16113.31,3],["1209","2025-02-28","Hyderabad","Furniture","Chair","Ajay",45304.55,"Cash",5.0,5035.86,1],["1210","2025-02-28","Pune","Furniture","Chair","Rahul",42195.2,"Debit Card",5.0,10858.3,4],["1211","2025-03-01","Delhi","Electronics","Laptop","Sneha",2966.5,"Credit Card",15.0,880.85,2],["1212","2025-03-01","Mumbai","Electronics","Headphones","Pooja",162362.75,"Cash",15.0,30826.01,5],["1213","2025-03-02","Delhi","Electronics","Headphones","Pooja",23752.8,"UPI",10.0,3272.49,4],["1214","2025-03-02","Bangalore","Clothing","Jeans","Rahul",43502.4,"Cash",5.0,11899.85,1],["1215","2025-03-02","Delhi","Electronics","Mobile","Rahul",137937.15,"Cash",5.0,20953.93,3],["1216","2025-03-02","Pune","Electronics","Headphones","Ajay",205645.5,"UPI",10.0,36527.57,5],["1217","2025-03-02","Delhi","Furniture","Sofa","Pooja",120959.25,"Cash",15.0,35818.44,5],["1218","2025-03-03","Delhi","Furniture","Chair","Pooja",52989.0,"UPI",0.0,6222.88,3],["1219","2025-03-03","Bangalore","Furniture","Sofa","Ajay",23500.8,"UPI",15.0,6159.08,4],["1220","2025-03-03","Delhi","Electronics","Mobile","Sneha",134568.0,"Cash",10.0,29208.43,3],["1221","2025-03-03","Hyderabad","Furniture","Table","Rahul",47761.5,"Cash",15.0,7160.51,2],["1222","2025-03-04","Bangalore","Electronics","Laptop","Ajay",148914.0,"Credit Card",10.0,18866.05,5],["1223","2025-03-04","Delhi","Furniture","Sofa","Sneha",45814.7,"Credit Card",5.0,7133.23,1],["1224","2025-03-04","Delhi","Clothing","T-Shirt","Rahul",73990.8,"Cash",10.0,20068.15,3],["1225","2025-03-05","Bangalore","Furniture","Chair","Pooja",144924.4,"UPI",5.0,27959.98,4],["1226","2025-03-05","Mumbai","Clothing","Jacket","Pooja",38691.0,"Credit Card",10.0,10818.02,5],["1227","2025-03-05","Hyderabad","Clothing","Jeans","Rahul",170590.75,"Debit Card",15.0,19839.95,5],["1228","2025-03-05","Hyderabad","Electronics","Laptop","Rahul",22352.55,"UPI",5.0,3348.42,1],["1229","2025-03-05","Pune","Furniture","Sofa","Pooja",16052.4,"Debit Card",10.0,3296.33,4],["1230","2025-03-06","Bangalore","Electronics","Headphones","Pooja",8946.25,"UPI",15.0,2307.61,1],["1231","2025-03-06","Bangalore","Furniture","Sofa","Rahul",64798.2,"Debit Card",10.0,14861.13,2],["1232","2025-03-06","Bangalore","Electronics","Laptop","Rahul",20428.2,"Debit Card",10.0,5878.36,1],["1233","2025-03-07","Hyderabad","Clothing","Jeans","Rahul",18918.0,"Debit Card",0.0,3502.13,3],["1234","2025-03-07","Hyderabad","Clothing","Jacket","Ajay",30939.0,"UPI",0.0,7361.12,1],["1235","2025-03-07","Delhi","Electronics","Laptop","Ajay",1580.4,"UPI",10.0,444.88,2],["1236","2025-03-08","Hyderabad","Clothing","Jeans","Pooja",48618.0,"Cash",10.0,12882.58,4],["1237","2025-03-08","Delhi","Furniture","Table","Pooja",6321.6,"Cash",10.0,1131.87,1],["1238","2025-03-08","Mumbai","Electronics","Laptop","Ajay",70200.0,"Debit Card",0.0,8532.53,4],["1239","2025-03-09","Delhi","Furniture","Table","Pooja",32300.0,"UPI",15.0,3523.67,5],["1240","2025-03-09","Delhi","Electronics","Headphones","Rahul",39426.9,"Debit Card",5.0,4883.53,2],["1241","2025-03-09","Bangalore","Clothing","Jeans","Rahul",22788.0,"Credit Card",10.0,6121.06,5],["1242","2025-03-10","Bangalore","Electronics","Mobile","Rahul",130941.9,"Debit Card",10.0,27272.38,3],["1243","2025-03-10","Bangalore","Furniture","Table","Rahul",58855.7,"Cash",15.0,15502.46,2],["1244","2025-03-11","Delhi","Furniture","Table","Sneha",28993.5,"Cash",15.0,3399.64,1],["1245","2025-03-11","Hyderabad","Electronics","Mobile","Rahul",108748.0,"UPI",0.0,16137.18,4],["1246","2025-03-12","Mumbai","Clothing","Jacket","Sneha",18600.3,"Credit Card",10.0,3747.15,1],["1247","2025-03-12","Pune","Electronics","Headphones","Sneha",112599.0,"Cash",0.0,22294.72,3],["1248","2025-03-12","Hyderabad","Furniture","Chair","Rahul",115268.25,"UPI",5.0,33224.69,5],["1249","2025-03-12","Mumbai","Furniture","Chair","Ajay",144310.5,"Credit Card",10.0,16045.47,5],["1250","2025-03-13","Delhi","Clothing","Jeans","Pooja",71378.0,"Cash",0.0,9343.69,2],["1251","2025-03-13","Delhi","Furniture","Chair","Sneha",8180.0,"UPI",0.0,961.66,2],["1252","2025-03-14","Pune","Electronics","Laptop","Rahul",30647.6,"UPI",15.0,7179.11,4],["1253","2025-03-14","Hyderabad","Furniture","Table","Rahul",197200.0,"Cash",15.0,56964.42,5],["1254","2025-03-14","Pune","Furniture","Chair","Sneha",3969.5,"Credit Card",15.0,631.98,1],["1255","2025-03-14","Hyderabad","Furniture","Sofa","Ajay",29706.3,"UPI",10.0,5674.61,1],["1256","2025-03-14","Delhi","Clothing","Jacket","Pooja",104726.1,"Credit Card",5.0,12127.88,3],["1257","2025-03-15","Pune","Electronics","Headphones","Pooja",124794.45,"Debit Card",15.0,23402.1,3],["1258","2025-03-15","Hyderabad","Electronics","Mobile","Rahul",178402.4,"Cash",5.0,26153.81,4],["1259","2025-03-16","Bangalore","Clothing","T-Shirt","Ajay",20621.85,"Debit Card",15.0,2126.97,3],["1260","2025-03-16","Mumbai","Clothing","Jacket","Rahul",62486.25,"Cash",5.0,10276.1,5],["1261","2025-03-16","Pune","Clothing","Jeans","Pooja",44465.7,"Debit Card",5.0,5026.99,1],["1262","2025-03-16","Pune","Furniture","Sofa","Ajay",86848.05,"UPI",5.0,15407.92,3],["1263","2025-03-17","Pune","Clothing","T-Shirt","Rahul",58462.0,"UPI",0.0,17516.49,2],["1264","2025-03-17","Hyderabad","Furniture","Table","Sneha",150267.2,"Credit Card",5.0,29979.98,4],["1265","2025-03-18","Hyderabad","Clothing","T-Shirt","Ajay",11688.35,"Debit Card",15.0,2278.87,1],["1266","2025-03-18","Hyderabad","Electronics","Headphones","Ajay",163944.0,"Credit Card",10.0,27010.65,5],["1267","2025-03-18","Hyderabad","Electronics","Headphones","Pooja",23457.0,"Cash",0.0,6522.54,1],["1268","2025-03-19","Bangalore","Electronics","Headphones","Sneha",175216.0,"Debit Card",0.0,41477.84,4],["1269","2025-03-19","Bangalore","Furniture","Chair","Pooja",3858.3,"Cash",10.0,929.7,3],["1270","2025-03-19","Bangalore","Furniture","Sofa","Sneha",47988.0,"Credit Card",0.0,5519.75,3],["1271","2025-03-19","Pune","Furniture","Table","Sneha",125494.0,"Credit Card",15.0,18090.59,4],["1272","2025-03-19","Bangalore","Electronics","Mobile","Pooja",190364.0,"Debit Card",0.0,42319.38,4],["1273","2025-03-20","Bangalore","Furniture","Chair","Ajay",6081.75,"Credit Card",15.0,1648.6,1],["1274","2025-03-20","Mumbai","Clothing","Jeans","Rahul",69468.3,"Cash",10.0,17400.43,3],["1275","2025-03-20","Bangalore","Clothing","Jacket","Sneha",153796.5,"UPI",10.0,43090.51,5],["1276","2025-03-20","Bangalore","Clothing","T-Shirt","Sneha",66878.0,"Cash",0.0,10876.9,2],["1277","2025-03-20","Mumbai","Furniture","Table","Rahul",43955.0,"Credit Card",0.0,8596.09,1],["1278","2025-03-21","Mumbai","Furniture","Table","Pooja",37175.6,"Credit Card",15.0,7143.49,4],["1279","2025-03-21","Delhi","Clothing","Jeans","Rahul",25903.0,"Credit Card",0.0,5479.04,1],["1280","2025-03-21","Delhi","Furniture","Sofa","Pooja",59390.0,"UPI",0.0,10888.39,2],["1281","2025-03-21","Pune","Clothing","Jacket","Pooja",148650.0,"Credit Card",0.0,37144.31,3],["1282","2025-03-21","Hyderabad","Electronics","Laptop","Rahul",157644.4,"Debit Card",15.0,41638.47,4],["1283","2025-03-22","Hyderabad","Electronics","Headphones","Ajay",55764.0,"Cash",10.0,9903.88,4],["1284","2025-03-22","Pune","Electronics","Laptop","Sneha",56164.0,"Credit Card",5.0,10291.8,4],["1285","2025-03-22","Bangalore","Clothing","Jacket","Pooja",27501.3,"Credit Card",10.0,3167.79,1],["1286","2025-03-22","Bangalore","Furniture","Table","Ajay",169728.0,"Debit Card",0.0,45370.02,4],["1287","2025-03-22","Bangalore","Furniture","Chair","Rahul",40588.2,"UPI",10.0,8537.23,1],["1288","2025-03-23","Pune","Clothing","Jeans","Ajay",88677.0,"Cash",0.0,12104.34,3],["1289","2025-03-23","Bangalore","Electronics","Laptop","Ajay",3534.3,"UPI",10.0,598.09,1],["1290","2025-03-23","Delhi","Clothing","T-Shirt","Sneha",53861.2,"Debit Card",5.0,8039.21,4],["1291","2025-03-23","Bangalore","Clothing","Jacket","Ajay",155975.75,"Credit Card",5.0,32017.59,5],["1292","2025-03-23","Hyderabad","Electronics","Laptop","Ajay",212358.25,"UPI",5.0,46858.09,5],["1293","2025-03-24","Hyderabad","Electronics","Headphones","Pooja",35574.2,"Debit Card",15.0,10311.14,2],["1294","2025-03-24","Delhi","Clothing","Jacket","Ajay",82538.4,"Cash",15.0,8990.57,3],["1295","2025-03-24","Pune","Clothing","T-Shirt","Rahul",61625.0,"Debit Card",15.0,7720.29,5],["1296","2025-03-24","Delhi","Clothing","T-Shirt","Pooja",58085.6,"Credit Card",15.0,12757.4,2],["1297","2025-03-24","Pune","Clothing","Jacket","Sneha",41535.0,"Cash",0.0,9571.76,1],["1298","2025-03-25","Hyderabad","Electronics","Mobile","Pooja",51163.2,"Debit Card",10.0,5295.96,4],["1299","2025-03-25","Hyderabad","Furniture","Table","Pooja",39176.1,"Debit Card",5.0,10925.41,3],["1300","2025-03-26","Delhi","Electronics","Mobile","Sneha",166799.75,"Credit Card",15.0,18681.97,5],["1301","2025-03-26","Hyderabad","Furniture","Table","Pooja",16789.2,"Credit Card",15.0,2937.4,3],["1302","2025-03-26","Delhi","Furniture","Table","Pooja",80598.0,"Credit Card",5.0,22102.53,2],["1303","2025-03-27","Mumbai","Furniture","Sofa","Sneha",91098.75,"Debit Card",15.0,16996.81,5],["1304","2025-03-27","Bangalore","Furniture","Chair","Ajay",112879.0,"Debit Card",5.0,12304.73,5],["1305","2025-03-27","Mumbai","Clothing","Jacket","Ajay",6739.65,"Debit Card",15.0,873.96,1],["1306","2025-03-27","Delhi","Clothing","T-Shirt","Pooja",11439.9,"Debit Card",5.0,1454.39,3],["1307","2025-03-27","Hyderabad","Furniture","Sofa","Ajay",66585.6,"UPI",15.0,15200.22,4],["1308","2025-03-28","Bangalore","Clothing","Jacket","Pooja",10661.4,"Cash",10.0,2230.27,1],["1309","2025-03-28","Bangalore","Clothing","Jacket","Rahul",202901.0,"UPI",5.0,60374.47,5],["1310","2025-03-29","Pune","Furniture","Sofa","Ajay",187756.0,"Cash",0.0,35353.17,4],["1311","2025-03-29","Bangalore","Clothing","Jacket","Rahul",44946.0,"Debit Card",0.0,11338.55,2],["1312","2025-03-29","Mumbai","Furniture","Sofa","Sneha",31625.1,"UPI",15.0,5084.01,2],["1313","2025-03-29","Pune","Clothing","Jacket","Rahul",71911.2,"Credit Card",5.0,18366.89,4],["1314","2025-03-29","Mumbai","Furniture","Table","Ajay",155758.25,"Credit Card",15.0,27528.66,5],["1315","2025-03-30","Hyderabad","Clothing","Jacket","Ajay",53410.6,"UPI",15.0,12886.06,2],["1316","2025-03-30","Hyderabad","Clothing","T-Shirt","Sneha",7458.3,"UPI",10.0,2108.7,1],["1317","2025-03-30","Hyderabad","Electronics","Laptop","Sneha",12188.0,"Debit Card",0.0,2586.25,1],["1318","2025-03-30","Bangalore","Electronics","Headphones","Rahul",60672.0,"Credit Card",0.0,8736.79,4],["1319","2025-03-31","Bangalore","Clothing","Jacket","Sneha",41417.1,"Cash",15.0,7464.37,2],["1320","2025-03-31","Mumbai","Electronics","Headphones","Ajay",107100.0,"Credit Card",15.0,22750.82,4],["1321","2025-04-01","Hyderabad","Electronics","Mobile","Ajay",36934.0,"Credit Card",0.0,3990.42,1],["1322","2025-04-01","Bangalore","Furniture","Sofa","Pooja",185791.5,"Cash",5.0,25829.79,5],["1323","2025-04-01","Bangalore","Furniture","Chair","Sneha",126708.15,"Credit Card",5.0,15411.69,3],["1324","2025-04-02","Delhi","Electronics","Mobile","Rahul",100785.5,"Credit Card",5.0,27351.06,5],["1325","2025-04-02","Bangalore","Electronics","Mobile","Ajay",64467.0,"UPI",5.0,12562.96,4],["1326","2025-04-03","Pune","Electronics","Laptop","Rahul",16188.25,"Debit Card",15.0,3577.76,5],["1327","2025-04-03","Pune","Furniture","Chair","Sneha",41593.85,"Debit Card",5.0,8843.97,1],["1328","2025-04-04","Pune","Furniture","Sofa","Rahul",33228.2,"Credit Card",15.0,7378.39,4],["1329","2025-04-04","Mumbai","Clothing","T-Shirt","Rahul",188598.0,"UPI",15.0,28080.16,5],["1330","2025-04-04","Hyderabad","Clothing","T-Shirt","Rahul",96512.0,"UPI",0.0,10712.8,2],["1331","2025-04-04","Pune","Electronics","Laptop","Rahul",13942.2,"Debit Card",5.0,3945.72,4],["1332","2025-04-05","Pune","Furniture","Sofa","Rahul",122960.0,"Credit Card",0.0,16285.95,5],["1333","2025-04-05","Delhi","Clothing","T-Shirt","Sneha",6132.6,"Debit Card",10.0,616.13,1],["1334","2025-04-05","Delhi","Clothing","Jacket","Sneha",96873.4,"UPI",5.0,15066.78,4],["1335","2025-04-06","Mumbai","Furniture","Chair","Ajay",185649.0,"Cash",5.0,27958.99,4],["1336","2025-04-06","Pune","Clothing","Jeans","Ajay",52703.4,"Debit Card",15.0,5878.36,4],["1337","2025-04-06","Bangalore","Electronics","Headphones","Pooja",22976.0,"Credit Card",0.0,4460.65,1],["1338","2025-04-06","Bangalore","Electronics","Headphones","Ajay",214771.25,"Credit Card",5.0,32626.01,5],["1339","2025-04-07","Mumbai","Furniture","Sofa","Ajay",76471.1,"Debit Card",15.0,15597.52,2],["1340","2025-04-07","Hyderabad","Furniture","Chair","Ajay",1456.35,"Debit Card",5.0,397.1,1],["1341","2025-04-07","Delhi","Electronics","Headphones","Ajay",38871.0,"Cash",10.0,8947.82,1],["1342","2025-04-07","Hyderabad","Clothing","Jeans","Sneha",143917.4,"Credit Card",5.0,24423.72,4],["1343","2025-04-07","Mumbai","Furniture","Table","Ajay",89478.0,"UPI",10.0,25018.21,3],["1344","2025-04-08","Bangalore","Electronics","Mobile","Rahul",38448.0,"Debit Card",0.0,5454.6,4],["1345","2025-04-08","Pune","Electronics","Laptop","Sneha",128404.4,"UPI",15.0,24396.73,4],["1346","2025-04-08","Mumbai","Furniture","Table","Ajay",28988.0,"Debit Card",0.0,5411.44,2],["1347","2025-04-09","Pune","Electronics","Mobile","Ajay",55806.75,"UPI",15.0,6369.37,5],["1348","2025-04-09","Mumbai","Electronics","Headphones","Pooja",127503.0,"Cash",0.0,36616.56,3],["1349","2025-04-09","Hyderabad","Clothing","Jacket","Sneha",1606.5,"Credit Card",15.0,259.07,3],["1350","2025-04-09","Bangalore","Clothing","Jeans","Sneha",94642.8,"Debit Card",5.0,20965.97,2],["1351","2025-04-10","Mumbai","Electronics","Headphones","Ajay",123561.75,"Cash",5.0,34698.1,3],["1352","2025-04-10","Delhi","Electronics","Laptop","Pooja",127397.85,"Cash",5.0,12885.33,3],["1353","2025-04-10","Mumbai","Clothing","Jacket","Ajay",98965.0,"Debit Card",0.0,22080.65,5],["1354","2025-04-10","Mumbai","Furniture","Chair","Ajay",85185.0,"Debit Card",0.0,10519.04,5],["1355","2025-04-11","Hyderabad","Clothing","T-Shirt","Sneha",53319.6,"Debit Card",10.0,15120.2,2],["1356","2025-04-11","Delhi","Furniture","Sofa","Rahul",53530.2,"UPI",10.0,9447.23,3],["1357","2025-04-11","Hyderabad","Electronics","Mobile","Pooja",129905.5,"Credit Card",15.0,14955.23,5],["1358","2025-04-11","Mumbai","Clothing","T-Shirt","Pooja",10691.3,"Debit Card",15.0,2557.65,1],["1359","2025-04-12","Hyderabad","Electronics","Mobile","Rahul",2076.3,"Cash",10.0,591.18,3],["1360","2025-04-12","Delhi","Electronics","Laptop","Pooja",192845.25,"UPI",5.0,28941.37,5],["1361","2025-04-13","Delhi","Clothing","Jacket","Pooja",39999.75,"UPI",5.0,6646.27,5],["1362","2025-04-13","Pune","Furniture","Chair","Ajay",102768.15,"UPI",5.0,29784.35,3],["1363","2025-04-13","Pune","Clothing","T-Shirt","Rahul",4221.1,"Credit Card",15.0,1078.08,1],["1364","2025-04-14","Hyderabad","Furniture","Sofa","Sneha",13599.9,"Credit Card",10.0,2216.76,3],["1365","2025-04-14","Delhi","Clothing","Jacket","Ajay",64011.0,"UPI",5.0,13258.68,3],["1366","2025-04-14","Delhi","Furniture","Table","Pooja",190195.0,"UPI",0.0,33524.6,5],["1367","2025-04-15","Hyderabad","Furniture","Table","Ajay",51951.0,"Debit Card",0.0,12594.92,3],["1368","2025-04-15","Pune","Clothing","Jacket","Sneha",35932.05,"Debit Card",15.0,6789.95,1],["1369","2025-04-15","Hyderabad","Furniture","Chair","Sneha",30625.2,"Cash",10.0,5555.16,4],["1370","2025-04-15","Hyderabad","Electronics","Mobile","Pooja",19434.6,"Credit Card",10.0,5475.8,1],["1371","2025-04-16","Mumbai","Electronics","Mobile","Pooja",32313.6,"Credit Card",10.0,7970.71,1],["1372","2025-04-16","Bangalore","Furniture","Sofa","Sneha",62339.85,"Credit Card",15.0,16119.06,3],["1373","2025-04-16","Hyderabad","Electronics","Headphones","Pooja",96662.85,"Credit Card",15.0,10200.77,3],["1374","2025-04-16","Delhi","Clothing","Jeans","Pooja",101271.6,"Cash",10.0,28970.04,4],["1375","2025-04-16","Delhi","Electronics","Laptop","Pooja",100380.0,"Debit Card",0.0,26137.74,4],["1376","2025-04-17","Pune","Furniture","Sofa","Sneha",7401.6,"UPI",10.0,2131.98,2],["1377","2025-04-17","Hyderabad","Clothing","Jeans","Sneha",83181.0,"UPI",15.0,20989.82,5],["1378","2025-04-17","Mumbai","Furniture","Chair","Rahul",16959.6,"Credit Card",10.0,4259.93,4],["1379","2025-04-17","Pune","Electronics","Laptop","Pooja",75794.5,"Cash",15.0,16250.24,2],["1380","2025-04-18","Pune","Clothing","Jeans","Pooja",16161.9,"Cash",15.0,4385.52,1],["1381","2025-04-18","Mumbai","Electronics","Headphones","Ajay",24065.4,"Debit Card",5.0,6699.21,3],["1382","2025-04-19","Bangalore","Clothing","Jeans","Rahul",166824.0,"Debit Card",10.0,19172.21,4],["1383","2025-04-19","Bangalore","Electronics","Laptop","Ajay",90934.95,"UPI",5.0,21611.64,3],["1384","2025-04-19","Bangalore","Electronics","Headphones","Pooja",84450.9,"Cash",15.0,20621.36,3],["1385","2025-04-20","Mumbai","Clothing","Jeans","Ajay",59406.0,"Debit Card",0.0,15176.11,2],["1386","2025-04-20","Hyderabad","Clothing","T-Shirt","Pooja",1026.0,"Cash",5.0,131.38,2],["1387","2025-04-20","Bangalore","Clothing","Jacket","Pooja",54094.5,"Cash",10.0,8422.99,5],["1388","2025-04-20","Mumbai","Furniture","Table","Sneha",45896.4,"Cash",5.0,8995.71,1],["1389","2025-04-21","Hyderabad","Electronics","Mobile","Sneha",13983.0,"Cash",0.0,1562.21,3],["1390","2025-04-21","Mumbai","Clothing","Jeans","Sneha",46289.7,"UPI",5.0,5402.58,3],["1391","2025-04-21","Pune","Clothing","T-Shirt","Rahul",111896.0,"Cash",0.0,29982.06,4],["1392","2025-04-21","Delhi","Furniture","Chair","Pooja",154778.75,"Cash",5.0,46179.84,5],["1393","2025-04-22","Bangalore","Electronics","Mobile","Pooja",42251.25,"Debit Card",5.0,10902.5,3],["1394","2025-04-22","Delhi","Clothing","Jacket","Sneha",30920.0,"Credit Card",0.0,8050.68,4],["1395","2025-04-22","Mumbai","Furniture","Table","Ajay",63404.0,"Debit Card",0.0,14572.95,4],["1396","2025-04-22","Pune","Furniture","Table","Pooja",165307.5,"Cash",10.0,26879.84,5],["1397","2025-04-22","Delhi","Clothing","Jacket","Pooja",48619.8,"Cash",10.0,11462.68,2],["1398","2025-04-23","Hyderabad","Furniture","Table","Rahul",15044.2,"Cash",5.0,2800.18,1],["1399","2025-04-23","Bangalore","Electronics","Mobile","Sneha",107551.8,"Cash",10.0,26993.19,3],["1400","2025-04-24","Delhi","Electronics","Mobile","Rahul",11302.2,"Credit Card",10.0,3008.39,2],["1401","2025-04-24","Bangalore","Furniture","Chair","Pooja",27263.7,"Debit Card",10.0,5332.6,1],["1402","2025-04-24","Pune","Furniture","Chair","Rahul",48937.0,"UPI",0.0,11601.6,1],["1403","2025-04-25","Pune","Electronics","Mobile","Sneha",125874.8,"Cash",15.0,30876.25,4],["1404","2025-04-25","Mumbai","Clothing","Jeans","Rahul",30991.85,"Debit Card",15.0,4199.69,1],["1405","2025-04-25","Mumbai","Electronics","Laptop","Sneha",28834.4,"Debit Card",5.0,5805.06,1],["1406","2025-04-26","Mumbai","Clothing","Jacket","Rahul",22658.45,"Cash",15.0,2430.33,1],["1407","2025-04-26","Bangalore","Clothing","T-Shirt","Pooja",60786.9,"UPI",15.0,14412.25,3],["1408","2025-04-27","Pune","Electronics","Mobile","Rahul",160518.25,"Credit Card",15.0,36222.02,5],["1409","2025-04-27","Bangalore","Furniture","Sofa","Rahul",84254.4,"UPI",10.0,14655.3,4],["1410","2025-04-27","Mumbai","Electronics","Laptop","Sneha",61351.0,"UPI",5.0,16374.45,4],["1411","2025-04-28","Mumbai","Electronics","Mobile","Ajay",70050.6,"Debit Card",10.0,11209.7,2],["1412","2025-04-28","Bangalore","Furniture","Sofa","Ajay",59877.9,"Debit Card",10.0,11611.09,3],["1413","2025-04-28","Pune","Electronics","Laptop","Rahul",97822.25,"UPI",15.0,18583.68,5],["1414","2025-04-28","Mumbai","Electronics","Headphones","Rahul",16997.4,"UPI",5.0,2141.98,3],["1415","2025-04-29","Pune","Furniture","Chair","Sneha",105320.1,"Debit Card",15.0,30747.77,3],["1416","2025-04-29","Bangalore","Furniture","Chair","Rahul",32070.6,"Debit Card",10.0,3696.88,1],["1417","2025-04-29","Delhi","Clothing","T-Shirt","Sneha",77514.9,"Credit Card",15.0,19293.85,2],["1418","2025-04-29","Bangalore","Clothing","Jacket","Ajay",11804.0,"Credit Card",0.0,1946.64,4],["1419","2025-04-30","Bangalore","Electronics","Headphones","Sneha",166599.6,"Credit Card",5.0,17176.16,4],["1420","2025-04-30","Bangalore","Clothing","T-Shirt","Ajay",95320.0,"Credit Card",0.0,10894.01,2],["1421","2025-05-01","Bangalore","Clothing","Jeans","Pooja",22879.8,"Cash",5.0,2337.84,3],["1422","2025-05-01","Bangalore","Clothing","Jacket","Ajay",46760.9,"UPI",5.0,12141.69,1],["1423","2025-05-02","Bangalore","Clothing","Jeans","Pooja",28500.0,"UPI",0.0,6254.15,2],["1424","2025-05-02","Mumbai","Furniture","Chair","Ajay",5186.7,"UPI",15.0,1313.89,1],["1425","2025-05-02","Pune","Clothing","Jeans","Rahul",120617.1,"Cash",10.0,34188.82,3],["1426","2025-05-03","Bangalore","Clothing","Jeans","Rahul",37788.15,"Credit Card",5.0,6444.37,1],["1427","2025-05-03","Bangalore","Furniture","Sofa","Ajay",14504.4,"UPI",15.0,1526.05,4],["1428","2025-05-03","Bangalore","Furniture","Sofa","Sneha",47356.05,"Cash",15.0,12248.93,3],["1429","2025-05-03","Hyderabad","Furniture","Table","Sneha",36655.2,"Cash",10.0,6720.76,1],["1430","2025-05-04","Mumbai","Furniture","Chair","Sneha",37825.2,"Cash",10.0,5835.59,1],["1431","2025-05-04","Delhi","Clothing","T-Shirt","Sneha",29142.0,"UPI",10.0,5000.83,5],["1432","2025-05-04","Pune","Furniture","Sofa","Pooja",4477.8,"Credit Card",15.0,718.9,1],["1433","2025-05-04","Delhi","Furniture","Chair","Sneha",58900.5,"UPI",10.0,8987.37,3],["1434","2025-05-04","Bangalore","Furniture","Chair","Sneha",31579.2,"Debit Card",15.0,3627.38,2],["1435","2025-05-05","Delhi","Electronics","Mobile","Pooja",177865.0,"Debit Card",0.0,25722.02,5],["1436","2025-05-05","Hyderabad","Furniture","Sofa","Rahul",1371.9,"Debit Card",15.0,333.42,3],["1437","2025-05-06","Pune","Clothing","T-Shirt","Sneha",2287.6,"Credit Card",5.0,681.81,1],["1438","2025-05-06","Hyderabad","Electronics","Headphones","Pooja",146352.0,"Cash",0.0,29096.08,4],["1439","2025-05-06","Mumbai","Electronics","Mobile","Rahul",89233.2,"UPI",10.0,22182.26,2],["1440","2025-05-07","Delhi","Furniture","Chair","Rahul",249830.0,"UPI",0.0,56661.33,5],["1441","2025-05-07","Pune","Electronics","Laptop","Ajay",49368.0,"Debit Card",0.0,11713.39,2],["1442","2025-05-07","Bangalore","Electronics","Laptop","Ajay",179607.6,"Cash",10.0,53662.69,4],["1443","2025-05-07","Bangalore","Clothing","T-Shirt","Pooja",17860.5,"Credit Card",10.0,5342.84,5],["1444","2025-05-07","Bangalore","Furniture","Table","Rahul",37408.0,"UPI",0.0,8155.95,2],["1445","2025-05-08","Delhi","Electronics","Laptop","Pooja",37490.4,"UPI",10.0,9972.54,1],["1446","2025-05-08","Delhi","Electronics","Headphones","Sneha",20934.0,"Cash",10.0,3819.22,2],["1447","2025-05-08","Delhi","Clothing","Jeans","Ajay",35499.0,"Debit Card",0.0,4078.78,1],["1448","2025-05-09","Hyderabad","Furniture","Chair","Pooja",25563.75,"Credit Card",15.0,4325.95,3],["1449","2025-05-09","Pune","Furniture","Chair","Sneha",63219.6,"Debit Card",15.0,6556.94,2],["1450","2025-05-09","Hyderabad","Clothing","T-Shirt","Sneha",35581.3,"UPI",5.0,10446.97,2],["1451","2025-05-10","Hyderabad","Electronics","Mobile","Rahul",23974.0,"Debit Card",0.0,6517.24,2],["1452","2025-05-10","Mumbai","Clothing","Jeans","Rahul",127181.25,"Debit Card",5.0,31821.05,5],["1453","2025-05-10","Delhi","Electronics","Laptop","Pooja",11632.5,"Credit Card",10.0,1444.77,5],["1454","2025-05-11","Bangalore","Clothing","T-Shirt","Rahul",24583.5,"Debit Card",10.0,3040.33,3],["1455","2025-05-11","Pune","Furniture","Table","Pooja",13104.0,"Credit Card",10.0,2474.21,2],["1456","2025-05-11","Hyderabad","Electronics","Mobile","Pooja",16318.0,"Cash",0.0,2871.43,1],["1457","2025-05-12","Delhi","Furniture","Chair","Ajay",6255.0,"Cash",0.0,1148.18,3],["1458","2025-05-12","Pune","Clothing","Jeans","Ajay",6465.0,"Cash",0.0,1523.37,5],["1459","2025-05-12","Bangalore","Clothing","T-Shirt","Ajay",32009.3,"UPI",5.0,6756.0,1],["1460","2025-05-12","Mumbai","Clothing","Jeans","Ajay",1644.45,"Cash",5.0,301.88,1],["1461","2025-05-12","Bangalore","Furniture","Chair","Ajay",37123.2,"UPI",10.0,3944.01,4],["1462","2025-05-13","Mumbai","Furniture","Chair","Pooja",25550.25,"Credit Card",5.0,6644.58,1],["1463","2025-05-13","Bangalore","Electronics","Laptop","Pooja",167906.8,"Debit Card",5.0,48319.9,4],["1464","2025-05-13","Hyderabad","Furniture","Table","Rahul",37884.5,"Debit Card",15.0,8001.07,2],["1465","2025-05-14","Hyderabad","Electronics","Laptop","Rahul",2880.0,"Debit Card",0.0,794.29,4],["1466","2025-05-14","Delhi","Furniture","Sofa","Rahul",37576.8,"UPI",10.0,6963.91,2],["1467","2025-05-14","Hyderabad","Clothing","Jeans","Sneha",62206.0,"Cash",0.0,8833.58,2],["1468","2025-05-15","Hyderabad","Electronics","Mobile","Pooja",16316.25,"UPI",5.0,2996.59,1],["1469","2025-05-15","Hyderabad","Clothing","Jeans","Sneha",52196.0,"Debit Card",0.0,9683.54,4],["1470","2025-05-15","Delhi","Furniture","Sofa","Ajay",84974.4,"UPI",10.0,13940.19,3],["1471","2025-05-15","Delhi","Furniture","Sofa","Ajay",60612.3,"Cash",10.0,9010.86,3],["1472","2025-05-15","Delhi","Furniture","Table","Pooja",45390.0,"UPI",15.0,5868.95,3],["1473","2025-05-16","Delhi","Clothing","Jacket","Sneha",92718.1,"Cash",5.0,23357.9,2],["1474","2025-05-16","Bangalore","Electronics","Headphones","Pooja",95722.0,"Credit Card",5.0,11312.53,4],["1475","2025-05-16","Pune","Furniture","Sofa","Sneha",18594.0,"Debit Card",0.0,2101.15,3],["1476","2025-05-17","Pune","Furniture","Chair","Pooja",119763.0,"UPI",0.0,19875.85,3],["1477","2025-05-17","Delhi","Furniture","Sofa","Rahul",64910.0,"UPI",0.0,11839.65,5],["1478","2025-05-17","Bangalore","Electronics","Headphones","Ajay",35139.0,"Credit Card",15.0,3653.73,2],["1479","2025-05-18","Bangalore","Furniture","Chair","Pooja",42927.3,"UPI",10.0,11013.99,1],["1480","2025-05-18","Hyderabad","Clothing","T-Shirt","Pooja",84204.9,"Credit Card",10.0,11848.3,3],["1481","2025-05-18","Pune","Clothing","T-Shirt","Ajay",52110.0,"Debit Card",10.0,14547.04,4],["1482","2025-05-18","Bangalore","Clothing","Jeans","Pooja",9381.0,"Cash",0.0,1713.88,3],["1483","2025-05-19","Delhi","Clothing","Jacket","Sneha",55584.9,"UPI",15.0,14445.56,2],["1484","2025-05-19","Pune","Clothing","T-Shirt","Ajay",44561.0,"Credit Card",0.0,4581.19,1],["1485","2025-05-20","Delhi","Furniture","Table","Rahul",77984.0,"Debit Card",0.0,21766.67,4],["1486","2025-05-20","Bangalore","Electronics","Laptop","Sneha",49825.3,"Cash",15.0,9485.61,2],["1487","2025-05-20","Delhi","Electronics","Mobile","Sneha",25054.0,"Cash",0.0,5399.52,1],["1488","2025-05-20","Bangalore","Furniture","Chair","Ajay",128736.0,"Credit Card",0.0,24880.77,3],["1489","2025-05-20","Delhi","Electronics","Laptop","Pooja",77671.3,"Debit Card",15.0,18349.61,2],["1490","2025-05-21","Bangalore","Furniture","Table","Pooja",91875.0,"Credit Card",0.0,25175.59,5],["1491","2025-05-21","Pune","Electronics","Headphones","Pooja",13330.4,"UPI",5.0,1488.41,2],["1492","2025-05-22","Delhi","Electronics","Headphones","Pooja",73974.6,"UPI",5.0,16719.37,4],["1493","2025-05-22","Delhi","Furniture","Sofa","Sneha",168993.6,"Debit Card",5.0,36929.4,4],["1494","2025-05-23","Mumbai","Furniture","Table","Sneha",45152.55,"UPI",5.0,10903.57,3],["1495","2025-05-23","Hyderabad","Furniture","Chair","Ajay",152224.8,"Cash",15.0,20989.44,4],["1496","2025-05-23","Pune","Furniture","Sofa","Rahul",36618.0,"Cash",15.0,9471.37,3],["1497","2025-05-24","Hyderabad","Furniture","Sofa","Ajay",176419.75,"Debit Card",5.0,23322.09,5],["1498","2025-05-24","Bangalore","Clothing","Jacket","Rahul",55280.0,"Debit Card",0.0,6979.73,5],["1499","2025-05-24","Delhi","Clothing","T-Shirt","Sneha",39828.0,"Cash",0.0,4458.86,1],["1500","2025-05-25","Delhi","Furniture","Chair","Ajay",151036.5,"Debit Card",15.0,37558.3,5],["1501","2025-05-25","Delhi","Clothing","Jeans","Sneha",130455.0,"Debit Card",0.0,33029.0,5],["1502","2025-05-26","Hyderabad","Electronics","Headphones","Rahul",60164.7,"Debit Card",15.0,7885.42,2],["1503","2025-05-26","Hyderabad","Electronics","Laptop","Pooja",12955.0,"UPI",0.0,3866.37,5],["1504","2025-05-26","Hyderabad","Furniture","Table","Pooja",31471.25,"Debit Card",15.0,4712.54,1],["1505","2025-05-26","Pune","Furniture","Sofa","Pooja",84696.3,"UPI",5.0,9605.01,3],["1506","2025-05-27","Hyderabad","Furniture","Chair","Sneha",160327.0,"UPI",15.0,25338.07,4],["1507","2025-05-27","Hyderabad","Clothing","T-Shirt","Ajay",3197.7,"Credit Card",15.0,561.53,1],["1508","2025-05-27","Bangalore","Electronics","Headphones","Ajay",120768.75,"Cash",5.0,35790.69,5],["1509","2025-05-28","Pune","Electronics","Mobile","Sneha",52924.0,"Credit Card",0.0,15333.98,4],["1510","2025-05-28","Bangalore","Furniture","Sofa","Sneha",127053.0,"Debit Card",5.0,30196.59,3],["1511","2025-05-28","Pune","Furniture","Chair","Ajay",84085.2,"Cash",10.0,12305.36,2],["1512","2025-05-29","Bangalore","Electronics","Laptop","Pooja",21508.2,"Cash",10.0,2375.63,3],["1513","2025-05-29","Pune","Clothing","T-Shirt","Rahul",111433.5,"Debit Card",10.0,22200.39,5],["1514","2025-05-29","Bangalore","Electronics","Mobile","Rahul",139741.2,"UPI",10.0,28081.65,4],["1515","2025-05-30","Pune","Furniture","Chair","Rahul",63331.2,"Debit Card",10.0,10976.69,2],["1516","2025-05-30","Bangalore","Clothing","Jeans","Sneha",127574.55,"UPI",5.0,23687.64,3],["1517","2025-05-30","Mumbai","Electronics","Laptop","Pooja",5506.2,"UPI",5.0,1595.94,1],["1518","2025-05-30","Mumbai","Furniture","Sofa","Rahul",93356.0,"Credit Card",0.0,10579.61,4],["1519","2025-05-30","Pune","Furniture","Chair","Sneha",90136.0,"Debit Card",0.0,11286.8,2],["1520","2025-05-31","Pune","Furniture","Chair","Rahul",13995.9,"Cash",10.0,2912.27,1],["1521","2025-05-31","Delhi","Electronics","Laptop","Ajay",11067.3,"Cash",10.0,1443.41,3],["1522","2025-06-01","Pune","Electronics","Headphones","Pooja",32498.9,"Debit Card",15.0,7780.16,1],["1523","2025-06-01","Delhi","Clothing","Jeans","Pooja",24135.0,"UPI",0.0,4581.65,1],["1524","2025-06-01","Delhi","Clothing","T-Shirt","Pooja",22456.1,"Credit Card",5.0,6697.43,2],["1525","2025-06-01","Bangalore","Clothing","T-Shirt","Ajay",39728.0,"UPI",0.0,7180.57,4],["1526","2025-06-01","Pune","Electronics","Mobile","Sneha",21722.0,"Credit Card",0.0,3397.26,1],["1527","2025-06-02","Mumbai","Clothing","T-Shirt","Pooja",68061.6,"UPI",10.0,18699.63,2],["1528","2025-06-02","Bangalore","Clothing","Jeans","Pooja",36157.3,"Credit Card",15.0,9403.64,2],["1529","2025-06-02","Hyderabad","Furniture","Sofa","Ajay",45840.0,"UPI",0.0,5131.11,2],["1530","2025-06-02","Bangalore","Electronics","Headphones","Ajay",113670.0,"UPI",0.0,33605.58,3],["1531","2025-06-03","Mumbai","Furniture","Sofa","Sneha",182343.0,"Cash",5.0,28951.23,4],["1532","2025-06-03","Delhi","Electronics","Laptop","Pooja",40698.0,"UPI",5.0,11032.65,5],["1533","2025-06-03","Bangalore","Furniture","Table","Ajay",70308.0,"UPI",10.0,11616.18,2],["1534","2025-06-03","Hyderabad","Clothing","T-Shirt","Sneha",211465.25,"Credit Card",5.0,43376.1,5],["1535","2025-06-03","Pune","Clothing","Jeans","Sneha",130735.2,"Cash",5.0,25970.85,3],["1536","2025-06-04","Delhi","Clothing","Jeans","Rahul",85284.9,"Debit Card",10.0,11613.11,3],["1537","2025-06-04","Bangalore","Furniture","Chair","Pooja",172885.0,"Credit Card",0.0,31178.11,5],["1538","2025-06-04","Pune","Clothing","Jeans","Ajay",174247.2,"Cash",10.0,50108.35,4],["1539","2025-06-05","Hyderabad","Electronics","Laptop","Ajay",38788.05,"Cash",15.0,10973.57,3],["1540","2025-06-05","Bangalore","Furniture","Table","Rahul",83520.2,"Debit Card",5.0,19329.94,4],["1541","2025-06-05","Bangalore","Clothing","Jacket","Sneha",39633.0,"Credit Card",0.0,4996.1,3],["1542","2025-06-06","Pune","Clothing","Jacket","Ajay",12901.0,"Debit Card",0.0,2409.35,1],["1543","2025-06-06","Pune","Clothing","Jeans","Rahul",49504.0,"Credit Card",0.0,5648.83,2],["1544","2025-06-06","Hyderabad","Clothing","Jeans","Pooja",10277.1,"Debit Card",5.0,2200.95,2],["1545","2025-06-06","Hyderabad","Furniture","Table","Ajay",94140.0,"UPI",10.0,15439.96,5],["1546","2025-06-06","Mumbai","Clothing","Jacket","Rahul",39979.75,"UPI",15.0,11224.96,1],["1547","2025-06-07","Mumbai","Electronics","Laptop","Sneha",75279.6,"UPI",10.0,21356.04,2],["1548","2025-06-07","Pune","Clothing","T-Shirt","Rahul",27686.2,"Debit Card",15.0,3617.71,2],["1549","2025-06-07","Bangalore","Clothing","Jeans","Sneha",68335.0,"Debit Card",0.0,7749.08,5],["1550","2025-06-07","Pune","Clothing","Jeans","Rahul",37905.95,"UPI",5.0,9568.04,1],["1551","2025-06-08","Bangalore","Furniture","Chair","Pooja",46782.0,"Debit Card",0.0,9270.09,3],["1552","2025-06-08","Pune","Clothing","T-Shirt","Sneha",102498.0,"Debit Card",0.0,16081.36,3],["1553","2025-06-08","Mumbai","Electronics","Headphones","Sneha",116973.5,"Debit Card",5.0,28459.96,5],["1554","2025-06-09","Pune","Clothing","Jeans","Ajay",124769.8,"UPI",15.0,16112.05,4],["1555","2025-06-09","Bangalore","Clothing","Jacket","Pooja",215370.0,"Cash",0.0,30639.16,5],["1556","2025-06-10","Pune","Electronics","Mobile","Pooja",89258.0,"Credit Card",0.0,21101.61,2],["1557","2025-06-10","Bangalore","Clothing","Jeans","Pooja",13620.4,"UPI",15.0,2557.57,2],["1558","2025-06-10","Mumbai","Furniture","Sofa","Pooja",106133.55,"Credit Card",15.0,11199.52,3],["1559","2025-06-11","Delhi","Clothing","T-Shirt","Pooja",19274.4,"Debit Card",10.0,5546.07,1],["1560","2025-06-11","Mumbai","Furniture","Table","Pooja",93888.5,"UPI",5.0,10221.5,5],["1561","2025-06-11","Hyderabad","Clothing","T-Shirt","Ajay",1264.45,"UPI",5.0,292.58,1],["1562","2025-06-12","Bangalore","Clothing","Jacket","Rahul",23384.35,"Cash",15.0,3019.21,1],["1563","2025-06-12","Delhi","Electronics","Laptop","Ajay",179371.25,"Debit Card",15.0,30802.15,5],["1564","2025-06-12","Delhi","Furniture","Table","Pooja",18652.5,"UPI",10.0,5168.43,1],["1565","2025-06-12","Bangalore","Furniture","Chair","Sneha",77425.65,"Cash",15.0,19078.86,3],["1566","2025-06-12","Pune","Electronics","Mobile","Pooja",27747.9,"Cash",10.0,4475.52,1],["1567","2025-06-13","Pune","Furniture","Sofa","Ajay",39034.55,"Debit Card",15.0,4274.24,1],["1568","2025-06-13","Delhi","Clothing","T-Shirt","Rahul",46744.0,"UPI",0.0,5913.68,2],["1569","2025-06-13","Bangalore","Furniture","Table","Sneha",38531.0,"UPI",0.0,10766.89,1],["1570","2025-06-13","Hyderabad","Electronics","Headphones","Sneha",114185.25,"Debit Card",5.0,22451.77,3],["1571","2025-06-13","Delhi","Furniture","Sofa","Pooja",5266.8,"Cash",10.0,1531.64,2],["1572","2025-06-14","Mumbai","Clothing","Jeans","Sneha",30601.4,"Cash",5.0,8203.93,2],["1573","2025-06-14","Delhi","Furniture","Table","Pooja",37002.0,"Cash",0.0,7633.11,3],["1574","2025-06-14","Delhi","Clothing","Jeans","Ajay",159345.25,"Credit Card",15.0,35756.32,5],["1575","2025-06-14","Delhi","Clothing","Jacket","Ajay",207494.25,"Debit Card",5.0,26531.53,5],["1576","2025-06-15","Mumbai","Clothing","Jeans","Pooja",25071.0,"UPI",0.0,4774.14,1],["1577","2025-06-15","Pune","Electronics","Headphones","Pooja",156431.75,"UPI",5.0,36725.98,5],["1578","2025-06-15","Mumbai","Clothing","T-Shirt","Sneha",30794.4,"UPI",10.0,8995.07,1],["1579","2025-06-16","Bangalore","Clothing","Jacket","Ajay",233244.0,"Debit Card",5.0,28453.54,5],["1580","2025-06-16","Bangalore","Electronics","Mobile","Ajay",187401.75,"Credit Card",5.0,35634.29,5],["1581","2025-06-16","Mumbai","Clothing","Jeans","Rahul",74949.6,"Credit Card",15.0,18606.18,2],["1582","2025-06-17","Pune","Clothing","Jeans","Rahul",173706.0,"UPI",15.0,51631.43,5],["1583","2025-06-17","Mumbai","Electronics","Headphones","Rahul",135441.0,"Cash",0.0,36980.59,3],["1584","2025-06-17","Mumbai","Furniture","Sofa","Rahul",37088.0,"UPI",5.0,5196.47,1],["1585","2025-06-18","Mumbai","Electronics","Mobile","Sneha",37818.0,"Debit Card",10.0,11024.69,5],["1586","2025-06-18","Hyderabad","Electronics","Laptop","Pooja",19162.4,"Debit Card",15.0,5059.82,1],["1587","2025-06-19","Bangalore","Clothing","T-Shirt","Sneha",18665.6,"Debit Card",5.0,3992.2,1],["1588","2025-06-19","Delhi","Electronics","Headphones","Rahul",145116.25,"Cash",15.0,28897.89,5],["1589","2025-06-19","Mumbai","Electronics","Laptop","Pooja",83584.8,"Credit Card",10.0,11323.52,4],["1590","2025-06-19","Delhi","Clothing","Jacket","Pooja",84893.75,"Credit Card",15.0,17100.58,5],["1591","2025-06-20","Pune","Clothing","Jeans","Rahul",133417.05,"Cash",5.0,24014.04,3],["1592","2025-06-20","Delhi","Clothing","Jacket","Ajay",105117.0,"Credit Card",0.0,24844.21,3],["1593","2025-06-21","Bangalore","Electronics","Mobile","Ajay",52672.5,"Cash",10.0,13646.91,5],["1594","2025-06-21","Mumbai","Clothing","Jeans","Ajay",2068.05,"Credit Card",15.0,343.68,3],["1595","2025-06-21","Hyderabad","Electronics","Headphones","Rahul",180455.0,"UPI",15.0,40798.9,5],["1596","2025-06-21","Pune","Electronics","Headphones","Rahul",31566.6,"UPI",10.0,7452.91,1],["1597","2025-06-22","Mumbai","Electronics","Laptop","Pooja",60581.5,"Credit Card",5.0,12137.89,5],["1598","2025-06-22","Pune","Clothing","T-Shirt","Sneha",69591.3,"Credit Card",5.0,13449.14,2],["1599","2025-06-22","Hyderabad","Electronics","Headphones","Ajay",21416.4,"Credit Card",10.0,4647.42,4],["1600","2025-06-22","Hyderabad","Clothing","Jacket","Pooja",2617.2,"Debit Card",10.0,676.01,1],["1601","2025-06-23","Bangalore","Furniture","Chair","Rahul",5359.5,"Credit Card",10.0,716.56,1],["1602","2025-06-23","Delhi","Furniture","Sofa","Rahul",136915.0,"Cash",0.0,29252.56,5],["1603","2025-06-23","Pune","Furniture","Chair","Ajay",5532.3,"Credit Card",10.0,1385.57,1],["1604","2025-06-23","Pune","Furniture","Sofa","Ajay",2565.0,"Cash",5.0,506.31,4],["1605","2025-06-24","Bangalore","Electronics","Headphones","Ajay",22982.0,"UPI",0.0,5416.22,1],["1606","2025-06-24","Mumbai","Electronics","Headphones","Sneha",132013.5,"Debit Card",15.0,32063.34,5],["1607","2025-06-24","Pune","Clothing","T-Shirt","Pooja",39244.5,"Debit Card",15.0,11430.69,5],["1608","2025-06-25","Bangalore","Electronics","Mobile","Sneha",39287.7,"Credit Card",10.0,11459.56,3],["1609","2025-06-25","Bangalore","Electronics","Mobile","Sneha",90749.7,"Cash",5.0,26548.94,3],["1610","2025-06-25","Delhi","Electronics","Headphones","Sneha",30340.15,"UPI",5.0,5447.17,1],["1611","2025-06-26","Hyderabad","Electronics","Mobile","Pooja",96785.25,"UPI",15.0,13457.17,5],["1612","2025-06-26","Pune","Furniture","Chair","Ajay",156826.0,"Debit Card",5.0,46318.64,4],["1613","2025-06-26","Bangalore","Electronics","Headphones","Rahul",27288.9,"Debit Card",10.0,4592.11,3],["1614","2025-06-26","Delhi","Electronics","Headphones","Rahul",17769.75,"Debit Card",5.0,4660.37,1],["1615","2025-06-27","Hyderabad","Clothing","Jeans","Rahul",61492.0,"Debit Card",0.0,8998.37,4],["1616","2025-06-27","Mumbai","Furniture","Chair","Ajay",25844.75,"Cash",5.0,3323.47,1],["1617","2025-06-27","Delhi","Furniture","Chair","Pooja",14831.4,"Cash",5.0,4261.83,4],["1618","2025-06-28","Pune","Furniture","Chair","Ajay",17964.5,"UPI",5.0,4842.13,2],["1619","2025-06-28","Hyderabad","Furniture","Sofa","Ajay",23598.0,"Credit Card",5.0,5917.61,3],["1620","2025-06-28","Pune","Furniture","Table","Ajay",10989.0,"Cash",0.0,2527.73,1],["1621","2025-06-29","Bangalore","Electronics","Headphones","Ajay",24826.8,"Debit Card",15.0,4597.03,3],["1622","2025-06-29","Mumbai","Electronics","Mobile","Sneha",12310.2,"Credit Card",10.0,2854.4,2],["1623","2025-06-29","Hyderabad","Furniture","Table","Ajay",74194.0,"Credit Card",0.0,19107.19,2],["1624","2025-06-29","Mumbai","Furniture","Chair","Rahul",43260.75,"Debit Card",15.0,11770.27,3],["1625","2025-06-30","Pune","Clothing","Jeans","Rahul",57002.7,"Cash",15.0,16382.17,2],["1626","2025-06-30","Bangalore","Clothing","Jacket","Rahul",2034.0,"Credit Card",0.0,573.71,1],["1627","2025-07-01","Pune","Furniture","Sofa","Ajay",159694.6,"UPI",15.0,41466.74,4],["1628","2025-07-01","Pune","Furniture","Chair","Ajay",43839.0,"UPI",0.0,6816.05,1],["1629","2025-07-01","Hyderabad","Electronics","Laptop","Sneha",68777.1,"UPI",10.0,17315.22,3],["1630","2025-07-01","Hyderabad","Electronics","Headphones","Ajay",7028.1,"Debit Card",5.0,795.27,2],["1631","2025-07-01","Bangalore","Clothing","Jacket","Rahul",45867.9,"Cash",5.0,7442.87,1],["1632","2025-07-02","Pune","Furniture","Sofa","Ajay",4240.65,"Cash",15.0,559.35,3],["1633","2025-07-02","Bangalore","Furniture","Table","Ajay",112030.0,"Cash",15.0,26695.89,4],["1634","2025-07-02","Hyderabad","Furniture","Sofa","Rahul",68595.0,"Credit Card",0.0,14844.72,3],["1635","2025-07-02","Bangalore","Clothing","T-Shirt","Rahul",33972.0,"Credit Card",0.0,3807.54,3],["1636","2025-07-02","Hyderabad","Clothing","Jeans","Pooja",118681.2,"Cash",10.0,34662.95,3],["1637","2025-07-03","Hyderabad","Clothing","Jacket","Pooja",25093.3,"Cash",5.0,7272.97,1],["1638","2025-07-03","Bangalore","Clothing","Jeans","Ajay",20566.0,"Debit Card",0.0,2298.61,2],["1639","2025-07-03","Mumbai","Clothing","Jeans","Ajay",12074.4,"UPI",10.0,1488.04,1],["1640","2025-07-03","Pune","Furniture","Table","Ajay",25081.2,"UPI",10.0,3894.73,1],["1641","2025-07-03","Bangalore","Furniture","Chair","Sneha",5754.0,"Credit Card",0.0,929.01,1],["1642","2025-07-04","Hyderabad","Electronics","Laptop","Rahul",40666.5,"Credit Card",10.0,12189.55,5],["1643","2025-07-04","Pune","Electronics","Laptop","Sneha",114555.6,"Credit Card",10.0,22601.14,4],["1644","2025-07-04","Hyderabad","Electronics","Mobile","Rahul",224941.5,"Debit Card",10.0,54977.46,5],["1645","2025-07-04","Mumbai","Clothing","T-Shirt","Sneha",136614.75,"Cash",5.0,33236.32,5],["1646","2025-07-05","Mumbai","Furniture","Table","Rahul",10707.45,"Credit Card",15.0,2546.89,1],["1647","2025-07-05","Delhi","Electronics","Laptop","Rahul",107234.1,"Cash",5.0,28369.11,3],["1648","2025-07-05","Hyderabad","Furniture","Chair","Rahul",16491.6,"Cash",10.0,4689.91,4],["1649","2025-07-05","Delhi","Electronics","Mobile","Ajay",6583.25,"UPI",15.0,692.37,5],["1650","2025-07-06","Delhi","Furniture","Table","Rahul",26613.9,"UPI",10.0,3170.77,3],["1651","2025-07-06","Delhi","Clothing","Jeans","Rahul",125921.55,"Debit Card",15.0,15885.94,3],["1652","2025-07-06","Hyderabad","Electronics","Headphones","Pooja",178032.5,"Cash",15.0,36653.31,5],["1653","2025-07-06","Hyderabad","Clothing","Jeans","Pooja",163048.0,"UPI",0.0,24862.54,4],["1654","2025-07-07","Hyderabad","Furniture","Sofa","Sneha",30561.75,"Cash",15.0,8275.54,5],["1655","2025-07-07","Pune","Electronics","Laptop","Ajay",158084.75,"Cash",5.0,31756.66,5],["1656","2025-07-07","Pune","Electronics","Headphones","Rahul",61488.0,"UPI",10.0,15610.82,2],["1657","2025-07-07","Delhi","Electronics","Mobile","Sneha",19596.0,"Credit Card",0.0,3656.33,1],["1658","2025-07-08","Mumbai","Furniture","Sofa","Sneha",69327.2,"Credit Card",5.0,16205.6,4],["1659","2025-07-08","Pune","Electronics","Mobile","Pooja",124765.2,"UPI",10.0,15960.25,4],["1660","2025-07-08","Pune","Furniture","Sofa","Ajay",18331.95,"Cash",15.0,2384.31,1],["1661","2025-07-08","Pune","Furniture","Sofa","Pooja",64652.7,"UPI",15.0,6663.98,2],["1662","2025-07-08","Mumbai","Furniture","Table","Rahul",235215.25,"Credit Card",5.0,56205.42,5],["1663","2025-07-09","Delhi","Clothing","T-Shirt","Sneha",109840.5,"Credit Card",10.0,20509.6,5],["1664","2025-07-09","Hyderabad","Electronics","Headphones","Ajay",57250.8,"Credit Card",5.0,13098.14,3],["1665","2025-07-09","Pune","Furniture","Table","Ajay",73773.2,"Cash",15.0,19701.28,4],["1666","2025-07-09","Pune","Furniture","Table","Ajay",113700.0,"Cash",0.0,24743.36,3],["1667","2025-07-09","Mumbai","Furniture","Table","Ajay",27183.6,"Debit Card",10.0,3549.75,2],["1668","2025-07-10","Delhi","Electronics","Laptop","Rahul",146410.2,"Credit Card",5.0,16996.34,4],["1669","2025-07-10","Delhi","Electronics","Laptop","Ajay",166567.5,"Debit Card",10.0,42179.73,5],["1670","2025-07-10","Delhi","Furniture","Chair","Pooja",139798.2,"Cash",5.0,39450.73,4],["1671","2025-07-10","Bangalore","Clothing","T-Shirt","Pooja",115022.0,"Cash",15.0,29832.12,5],["1672","2025-07-10","Pune","Electronics","Headphones","Rahul",152989.8,"Debit Card",15.0,24986.33,4],["1673","2025-07-11","Bangalore","Clothing","Jeans","Ajay",12206.7,"UPI",10.0,3623.16,3],["1674","2025-07-11","Delhi","Furniture","Chair","Pooja",73068.0,"Debit Card",0.0,7354.59,2],["1675","2025-07-11","Bangalore","Electronics","Laptop","Rahul",25758.0,"Cash",0.0,6381.95,3],["1676","2025-07-11","Pune","Clothing","T-Shirt","Pooja",24436.65,"UPI",15.0,2609.39,3],["1677","2025-07-11","Pune","Furniture","Table","Ajay",13696.15,"Debit Card",5.0,1790.7,1],["1678","2025-07-12","Delhi","Clothing","Jacket","Rahul",109343.1,"Debit Card",5.0,11302.91,3],["1679","2025-07-12","Hyderabad","Furniture","Sofa","Sneha",7800.3,"UPI",10.0,1588.64,1],["1680","2025-07-13","Mumbai","Electronics","Laptop","Pooja",192764.5,"Cash",5.0,44053.12,5],["1681","2025-07-13","Hyderabad","Electronics","Headphones","Rahul",50386.1,"UPI",5.0,7451.1,2],["1682","2025-07-13","Mumbai","Furniture","Table","Ajay",89152.0,"Credit Card",0.0,15732.57,4],["1683","2025-07-13","Hyderabad","Clothing","Jeans","Pooja",177802.0,"UPI",5.0,24050.3,5],["1684","2025-07-14","Pune","Electronics","Laptop","Pooja",80640.0,"Debit Card",0.0,9902.39,5],["1685","2025-07-14","Hyderabad","Furniture","Sofa","Rahul",42499.8,"Debit Card",10.0,10251.16,2],["1686","2025-07-15","Mumbai","Clothing","Jacket","Sneha",63408.3,"UPI",15.0,16998.92,3],["1687","2025-07-15","Pune","Clothing","T-Shirt","Rahul",63268.2,"Credit Card",10.0,17413.33,2],["1688","2025-07-15","Bangalore","Clothing","Jacket","Rahul",106141.5,"Credit Card",10.0,26768.67,5],["1689","2025-07-15","Mumbai","Clothing","Jacket","Sneha",15882.1,"Cash",5.0,3684.36,2],["1690","2025-07-15","Pune","Furniture","Table","Sneha",22653.0,"Cash",10.0,6159.9,1],["1691","2025-07-16","Pune","Furniture","Chair","Pooja",180895.5,"Debit Card",10.0,47343.22,5],["1692","2025-07-16","Delhi","Electronics","Headphones","Sneha",77490.0,"Debit Card",10.0,13591.42,4],["1693","2025-07-16","Hyderabad","Furniture","Table","Ajay",36860.4,"Cash",10.0,5513.39,2],["1694","2025-07-16","Bangalore","Furniture","Table","Sneha",109423.05,"Debit Card",15.0,27748.46,3],["1695","2025-07-17","Pune","Electronics","Headphones","Pooja",31489.2,"Debit Card",10.0,5405.53,2],["1696","2025-07-17","Hyderabad","Clothing","Jacket","Pooja",7041.4,"UPI",15.0,1682.51,4],["1697","2025-07-17","Mumbai","Electronics","Headphones","Sneha",66522.6,"Debit Card",10.0,6681.1,3],["1698","2025-07-17","Mumbai","Furniture","Chair","Rahul",25316.0,"Debit Card",0.0,3027.7,2],["1699","2025-07-18","Delhi","Clothing","Jacket","Pooja",80720.25,"Debit Card",15.0,24015.93,5],["1700","2025-07-18","Mumbai","Clothing","T-Shirt","Pooja",20192.4,"Debit Card",10.0,3177.22,4],["1701","2025-07-18","Delhi","Furniture","Table","Ajay",82617.3,"Credit Card",10.0,12380.89,3],["1702","2025-07-19","Bangalore","Furniture","Chair","Pooja",46586.0,"Debit Card",0.0,5764.97,2],["1703","2025-07-19","Hyderabad","Clothing","Jacket","Pooja",77001.5,"UPI",15.0,14232.23,2],["1704","2025-07-19","Hyderabad","Electronics","Headphones","Rahul",32685.7,"Cash",5.0,4998.63,1],["1705","2025-07-19","Pune","Furniture","Sofa","Rahul",16682.4,"Cash",10.0,4399.5,1],["1706","2025-07-20","Hyderabad","Furniture","Sofa","Rahul",72459.0,"Credit Card",10.0,15890.13,2],["1707","2025-07-20","Bangalore","Clothing","Jeans","Ajay",46514.85,"Debit Card",5.0,6892.34,1],["1708","2025-07-20","Mumbai","Furniture","Table","Sneha",180718.5,"UPI",5.0,24725.69,5],["1709","2025-07-20","Pune","Clothing","T-Shirt","Rahul",86486.4,"Credit Card",10.0,12521.43,3],["1710","2025-07-20","Delhi","Furniture","Chair","Pooja",41712.9,"Cash",15.0,8116.6,3],["1711","2025-07-21","Bangalore","Furniture","Table","Sneha",114321.0,"UPI",0.0,22169.64,3],["1712","2025-07-21","Hyderabad","Electronics","Mobile","Pooja",92816.0,"Debit Card",0.0,23785.16,2],["1713","2025-07-21","Bangalore","Clothing","T-Shirt","Ajay",32384.0,"Credit Card",0.0,5100.79,2],["1714","2025-07-22","Delhi","Furniture","Chair","Rahul",45895.5,"Credit Card",10.0,7380.56,5],["1715","2025-07-22","Pune","Clothing","Jeans","Ajay",82144.0,"Cash",0.0,14624.02,2],["1716","2025-07-22","Delhi","Electronics","Headphones","Rahul",127696.0,"Debit Card",0.0,25913.16,4],["1717","2025-07-22","Mumbai","Furniture","Table","Pooja",62390.0,"Cash",0.0,11237.04,2],["1718","2025-07-23","Mumbai","Clothing","T-Shirt","Ajay",82058.0,"UPI",0.0,22050.2,2],["1719","2025-07-23","Delhi","Clothing","Jeans","Rahul",95696.0,"Credit Card",0.0,22818.34,4],["1720","2025-07-23","Bangalore","Furniture","Chair","Rahul",206290.75,"Cash",15.0,51875.36,5],["1721","2025-07-23","Hyderabad","Clothing","Jeans","Pooja",95864.5,"Cash",5.0,17676.73,5],["1722","2025-07-23","Hyderabad","Furniture","Sofa","Pooja",125989.0,"Debit Card",5.0,22669.4,5],["1723","2025-07-24","Bangalore","Clothing","T-Shirt","Ajay",50396.0,"UPI",0.0,12531.27,2],["1724","2025-07-24","Bangalore","Clothing","Jacket","Ajay",90534.0,"Debit Card",0.0,23552.05,3],["1725","2025-07-24","Pune","Electronics","Laptop","Sneha",221555.0,"Credit Card",0.0,44818.34,5],["1726","2025-07-24","Mumbai","Electronics","Mobile","Pooja",82144.8,"UPI",10.0,16042.28,2],["1727","2025-07-25","Mumbai","Furniture","Chair","Pooja",62126.2,"Debit Card",5.0,9104.67,2],["1728","2025-07-25","Bangalore","Electronics","Mobile","Rahul",130799.8,"Debit Card",5.0,13915.91,4],["1729","2025-07-25","Pune","Clothing","T-Shirt","Sneha",10978.2,"Credit Card",5.0,3224.14,3],["1730","2025-07-26","Delhi","Furniture","Table","Rahul",69394.0,"Debit Card",0.0,20009.01,2],["1731","2025-07-26","Pune","Electronics","Headphones","Pooja",122092.0,"UPI",0.0,17031.56,4],["1732","2025-07-27","Delhi","Electronics","Mobile","Ajay",10053.8,"Debit Card",15.0,2824.75,1],["1733","2025-07-27","Hyderabad","Furniture","Table","Pooja",42111.55,"UPI",15.0,5217.59,1],["1734","2025-07-28","Pune","Clothing","T-Shirt","Sneha",58804.0,"UPI",0.0,10243.2,4],["1735","2025-07-28","Bangalore","Furniture","Table","Pooja",4271.2,"Cash",5.0,1193.93,1],["1736","2025-07-28","Hyderabad","Furniture","Chair","Pooja",51629.0,"Cash",15.0,9599.08,5],["1737","2025-07-28","Bangalore","Electronics","Laptop","Ajay",88581.6,"UPI",10.0,11959.82,4],["1738","2025-07-29","Mumbai","Clothing","Jacket","Pooja",48528.0,"Cash",0.0,10389.35,2],["1739","2025-07-29","Hyderabad","Electronics","Headphones","Sneha",15308.0,"Cash",0.0,3896.23,4],["1740","2025-07-29","Mumbai","Furniture","Table","Ajay",91332.5,"Credit Card",15.0,16744.26,5],["1741","2025-07-29","Pune","Electronics","Mobile","Sneha",133756.0,"Cash",15.0,37932.89,4],["1742","2025-07-29","Bangalore","Electronics","Headphones","Rahul",188627.75,"Debit Card",15.0,28496.0,5],["1743","2025-07-30","Pune","Clothing","Jacket","Rahul",82591.1,"UPI",5.0,8402.38,2],["1744","2025-07-30","Hyderabad","Electronics","Headphones","Sneha",211641.0,"UPI",5.0,22341.02,5],["1745","2025-07-31","Mumbai","Furniture","Sofa","Ajay",3636.0,"Debit Card",10.0,972.21,5],["1746","2025-07-31","Delhi","Furniture","Chair","Pooja",120067.6,"Credit Card",15.0,21401.61,4],["1747","2025-08-01","Pune","Electronics","Laptop","Pooja",24563.2,"Cash",5.0,2697.36,2],["1748","2025-08-01","Delhi","Furniture","Sofa","Rahul",122026.0,"Cash",15.0,35855.52,5],["1749","2025-08-01","Pune","Electronics","Headphones","Sneha",11412.1,"Cash",15.0,3243.32,1],["1750","2025-08-01","Delhi","Electronics","Laptop","Rahul",66840.0,"Cash",0.0,16739.23,5],["1751","2025-08-01","Hyderabad","Clothing","Jeans","Pooja",22196.7,"Cash",10.0,4131.52,1],["1752","2025-08-02","Bangalore","Electronics","Mobile","Ajay",1629.0,"Cash",0.0,411.83,1],["1753","2025-08-02","Hyderabad","Clothing","T-Shirt","Sneha",165011.2,"Credit Card",5.0,31517.52,4],["1754","2025-08-03","Hyderabad","Clothing","Jacket","Rahul",126906.0,"Cash",0.0,31703.41,3],["1755","2025-08-03","Pune","Furniture","Sofa","Rahul",80454.2,"UPI",15.0,20919.15,2],["1756","2025-08-03","Mumbai","Clothing","Jeans","Sneha",27844.5,"Credit Card",5.0,4071.01,3],["1757","2025-08-04","Mumbai","Furniture","Sofa","Pooja",229453.5,"Debit Card",5.0,62505.19,5],["1758","2025-08-04","Pune","Clothing","Jeans","Sneha",103524.0,"Cash",0.0,10803.62,3],["1759","2025-08-04","Bangalore","Furniture","Chair","Ajay",96497.1,"Debit Card",15.0,18315.25,3],["1760","2025-08-05","Pune","Furniture","Chair","Ajay",132267.6,"Cash",10.0,21622.13,3],["1761","2025-08-05","Hyderabad","Electronics","Laptop","Sneha",6370.2,"Debit Card",10.0,1259.64,2],["1762","2025-08-05","Hyderabad","Clothing","Jeans","Ajay",100931.8,"Cash",5.0,25389.77,4],["1763","2025-08-06","Mumbai","Clothing","T-Shirt","Pooja",81200.0,"Credit Card",0.0,19092.29,5],["1764","2025-08-06","Bangalore","Electronics","Laptop","Ajay",219897.0,"Credit Card",10.0,65438.65,5],["1765","2025-08-06","Delhi","Furniture","Chair","Ajay",63121.8,"Debit Card",5.0,17970.08,3],["1766","2025-08-06","Delhi","Furniture","Table","Sneha",33878.45,"Credit Card",15.0,5330.74,1],["1767","2025-08-07","Hyderabad","Furniture","Table","Sneha",26324.1,"UPI",10.0,7581.96,1],["1768","2025-08-07","Mumbai","Electronics","Mobile","Rahul",13147.2,"UPI",10.0,3671.62,2],["1769","2025-08-07","Delhi","Electronics","Laptop","Pooja",25376.4,"Cash",5.0,2886.99,2],["1770","2025-08-08","Hyderabad","Furniture","Chair","Pooja",133368.0,"UPI",0.0,26031.61,4],["1771","2025-08-08","Bangalore","Electronics","Mobile","Rahul",183169.5,"Credit Card",5.0,45956.69,5],["1772","2025-08-08","Mumbai","Furniture","Table","Ajay",27621.0,"Debit Card",10.0,7860.54,5],["1773","2025-08-08","Mumbai","Furniture","Table","Pooja",20973.75,"Cash",15.0,5156.13,1],["1774","2025-08-09","Hyderabad","Clothing","Jacket","Pooja",168192.75,"UPI",5.0,31827.07,5],["1775","2025-08-09","Pune","Clothing","T-Shirt","Ajay",97918.2,"UPI",10.0,27270.3,3],["1776","2025-08-09","Mumbai","Furniture","Table","Sneha",115947.0,"Debit Card",10.0,20840.76,5],["1777","2025-08-09","Hyderabad","Furniture","Table","Sneha",42936.2,"UPI",5.0,5123.97,1],["1778","2025-08-09","Mumbai","Furniture","Sofa","Rahul",44042.95,"UPI",5.0,9220.43,1],["1779","2025-08-10","Bangalore","Furniture","Chair","Sneha",71971.2,"Debit Card",15.0,9583.75,4],["1780","2025-08-10","Pune","Electronics","Headphones","Ajay",32271.1,"Credit Card",15.0,6591.12,2],["1781","2025-08-10","Delhi","Furniture","Chair","Sneha",110177.0,"Credit Card",15.0,32518.08,5],["1782","2025-08-10","Bangalore","Clothing","Jacket","Sneha",146566.8,"Credit Card",10.0,30037.13,4],["1783","2025-08-11","Delhi","Clothing","T-Shirt","Rahul",56057.6,"UPI",5.0,12259.06,2],["1784","2025-08-11","Bangalore","Electronics","Headphones","Pooja",105988.2,"UPI",15.0,24586.53,4],["1785","2025-08-12","Pune","Clothing","Jacket","Ajay",136028.6,"Debit Card",5.0,18618.43,4],["1786","2025-08-12","Mumbai","Furniture","Chair","Sneha",179468.0,"Debit Card",0.0,39735.7,4],["1787","2025-08-12","Delhi","Furniture","Chair","Rahul",93624.0,"Debit Card",0.0,23475.49,4],["1788","2025-08-12","Delhi","Furniture","Chair","Rahul",27502.0,"Credit Card",0.0,4242.88,1],["1789","2025-08-13","Pune","Clothing","T-Shirt","Sneha",55305.2,"Cash",5.0,12465.61,4],["1790","2025-08-13","Bangalore","Electronics","Laptop","Pooja",109716.0,"UPI",0.0,15144.14,3],["1791","2025-08-13","Mumbai","Electronics","Laptop","Sneha",122189.0,"Cash",5.0,16590.62,4],["1792","2025-08-14","Bangalore","Electronics","Headphones","Rahul",87979.5,"Cash",5.0,24468.14,5],["1793","2025-08-14","Mumbai","Electronics","Headphones","Pooja",205425.0,"Cash",0.0,33194.29,5],["1794","2025-08-14","Hyderabad","Furniture","Sofa","Ajay",38470.15,"Cash",15.0,10761.91,1],["1795","2025-08-14","Bangalore","Clothing","Jeans","Sneha",181504.0,"UPI",0.0,53017.14,4],["1796","2025-08-15","Bangalore","Furniture","Table","Rahul",101817.2,"Credit Card",5.0,22965.63,4],["1797","2025-08-15","Pune","Electronics","Laptop","Ajay",85335.75,"Credit Card",15.0,18528.29,5],["1798","2025-08-15","Hyderabad","Electronics","Laptop","Ajay",92182.5,"UPI",15.0,14453.74,5],["1799","2025-08-15","Mumbai","Furniture","Sofa","Sneha",57140.4,"Credit Card",15.0,13806.16,2],["1800","2025-08-16","Hyderabad","Clothing","Jacket","Ajay",87852.0,"Cash",0.0,14273.25,4],["1801","2025-08-16","Bangalore","Furniture","Chair","Pooja",96812.0,"Credit Card",0.0,15354.44,2],["1802","2025-08-16","Pune","Electronics","Headphones","Sneha",70785.0,"Cash",10.0,12824.92,2],["1803","2025-08-16","Bangalore","Electronics","Headphones","Ajay",181066.2,"UPI",5.0,31307.48,4],["1804","2025-08-17","Hyderabad","Clothing","Jeans","Ajay",60252.0,"Credit Card",0.0,6212.6,3],["1805","2025-08-17","Hyderabad","Electronics","Mobile","Sneha",60180.6,"Credit Card",5.0,8363.89,4],["1806","2025-08-17","Delhi","Electronics","Headphones","Pooja",26316.0,"UPI",15.0,7112.79,5],["1807","2025-08-17","Delhi","Clothing","Jacket","Ajay",65850.2,"Credit Card",5.0,11583.43,4],["1808","2025-08-17","Mumbai","Clothing","Jacket","Pooja",158850.0,"Debit Card",0.0,32094.4,5],["1809","2025-08-18","Bangalore","Electronics","Mobile","Rahul",45524.0,"Debit Card",0.0,11576.82,4],["1810","2025-08-18","Delhi","Clothing","T-Shirt","Sneha",20689.0,"Debit Card",15.0,4528.94,4],["1811","2025-08-18","Pune","Clothing","Jacket","Pooja",41580.9,"Credit Card",10.0,11336.25,1],["1812","2025-08-18","Delhi","Electronics","Laptop","Rahul",79052.4,"Cash",10.0,14684.06,2],["1813","2025-08-18","Bangalore","Clothing","Jacket","Pooja",183328.0,"UPI",0.0,42764.07,4],["1814","2025-08-19","Pune","Furniture","Chair","Sneha",101880.15,"Credit Card",15.0,25967.68,3],["1815","2025-08-19","Hyderabad","Clothing","T-Shirt","Ajay",45383.2,"Debit Card",15.0,6509.45,2],["1816","2025-08-20","Bangalore","Furniture","Table","Sneha",89780.4,"UPI",15.0,18658.42,4],["1817","2025-08-20","Pune","Electronics","Headphones","Rahul",76779.0,"Cash",10.0,13473.4,2],["1818","2025-08-20","Mumbai","Furniture","Table","Rahul",33257.6,"Credit Card",5.0,4343.19,4],["1819","2025-08-20","Bangalore","Furniture","Chair","Rahul",209005.0,"UPI",0.0,34777.94,5],["1820","2025-08-21","Mumbai","Clothing","Jacket","Ajay",106509.0,"Cash",0.0,15638.01,3],["1821","2025-08-21","Pune","Clothing","T-Shirt","Ajay",2865.6,"UPI",10.0,664.35,2],["1822","2025-08-21","Hyderabad","Furniture","Table","Rahul",28764.0,"Debit Card",15.0,7542.98,3],["1823","2025-08-22","Pune","Furniture","Table","Pooja",20593.8,"Cash",15.0,3298.14,2],["1824","2025-08-22","Pune","Electronics","Laptop","Pooja",31385.0,"Credit Card",0.0,8917.73,5],["1825","2025-08-23","Pune","Clothing","Jeans","Rahul",27449.0,"Credit Card",0.0,3350.84,1],["1826","2025-08-23","Bangalore","Clothing","T-Shirt","Ajay",28516.65,"Cash",15.0,4563.39,3],["1827","2025-08-24","Mumbai","Electronics","Headphones","Ajay",50202.0,"Cash",10.0,13457.61,5],["1828","2025-08-24","Delhi","Furniture","Table","Rahul",99146.55,"Credit Card",15.0,10001.92,3],["1829","2025-08-24","Delhi","Clothing","T-Shirt","Pooja",64418.4,"Debit Card",10.0,8836.16,4],["1830","2025-08-25","Pune","Clothing","Jacket","Sneha",93098.1,"Cash",5.0,20408.07,3],["1831","2025-08-25","Delhi","Furniture","Table","Sneha",26936.0,"Credit Card",0.0,7524.69,1],["1832","2025-08-25","Delhi","Electronics","Laptop","Pooja",81860.0,"Debit Card",0.0,17883.37,5],["1833","2025-08-25","Delhi","Electronics","Mobile","Ajay",34672.0,"Debit Card",0.0,8463.76,4],["1834","2025-08-25","Mumbai","Electronics","Mobile","Sneha",151843.5,"Cash",10.0,30132.9,5],["1835","2025-08-26","Hyderabad","Furniture","Sofa","Ajay",71460.9,"Debit Card",5.0,17082.26,2],["1836","2025-08-26","Mumbai","Furniture","Chair","Rahul",43824.45,"Debit Card",5.0,8999.15,3],["1837","2025-08-26","Pune","Clothing","Jacket","Pooja",4075.2,"Debit Card",10.0,876.57,1],["1838","2025-08-26","Mumbai","Furniture","Table","Rahul",165035.0,"UPI",0.0,42393.03,5],["1839","2025-08-26","Mumbai","Electronics","Headphones","Pooja",178806.0,"UPI",15.0,50283.49,5],["1840","2025-08-27","Delhi","Electronics","Mobile","Pooja",76065.0,"Cash",0.0,9121.94,3],["1841","2025-08-27","Hyderabad","Electronics","Headphones","Pooja",17015.4,"Credit Card",10.0,4661.4,3],["1842","2025-08-27","Hyderabad","Electronics","Laptop","Sneha",4896.0,"Debit Card",0.0,1466.25,1],["1843","2025-08-27","Delhi","Clothing","Jeans","Rahul",85598.4,"Cash",15.0,22233.12,4],["1844","2025-08-28","Bangalore","Clothing","Jacket","Pooja",129054.0,"Credit Card",0.0,23934.95,3],["1845","2025-08-28","Bangalore","Clothing","Jacket","Ajay",177138.0,"Debit Card",10.0,48512.84,4],["1846","2025-08-29","Bangalore","Furniture","Chair","Rahul",60615.7,"Credit Card",5.0,15687.34,2],["1847","2025-08-29","Hyderabad","Furniture","Table","Rahul",39474.4,"Credit Card",5.0,10419.03,1],["1848","2025-08-29","Pune","Furniture","Chair","Pooja",82589.4,"Cash",10.0,11785.63,2],["1849","2025-08-29","Delhi","Clothing","Jacket","Rahul",223962.5,"Credit Card",5.0,31471.53,5],["1850","2025-08-29","Hyderabad","Clothing","T-Shirt","Ajay",100725.0,"Credit Card",0.0,28732.33,5],["1851","2025-08-30","Pune","Furniture","Chair","Rahul",46007.1,"Cash",15.0,12786.97,2],["1852","2025-08-30","Hyderabad","Furniture","Table","Pooja",122393.25,"Cash",5.0,21663.3,5],["1853","2025-08-31","Delhi","Clothing","T-Shirt","Sneha",6852.6,"Credit Card",10.0,1762.67,2],["1854","2025-08-31","Bangalore","Clothing","Jeans","Ajay",115946.55,"Cash",5.0,32044.94,3],["1855","2025-08-31","Hyderabad","Furniture","Table","Rahul",71208.0,"Debit Card",10.0,12702.38,5],["1856","2025-09-01","Mumbai","Furniture","Sofa","Sneha",22885.5,"Credit Card",5.0,2854.74,1],["1857","2025-09-01","Hyderabad","Clothing","Jacket","Sneha",147257.4,"Debit Card",15.0,35788.67,4],["1858","2025-09-01","Delhi","Furniture","Table","Sneha",63969.2,"Debit Card",5.0,8392.64,2],["1859","2025-09-01","Mumbai","Electronics","Mobile","Pooja",3401.0,"Cash",0.0,346.63,1],["1860","2025-09-02","Bangalore","Furniture","Sofa","Pooja",5988.6,"Debit Card",10.0,1043.86,1],["1861","2025-09-02","Mumbai","Clothing","Jacket","Pooja",33013.0,"UPI",0.0,4825.27,1],["1862","2025-09-03","Hyderabad","Electronics","Mobile","Rahul",80965.05,"Debit Card",15.0,19030.46,3],["1863","2025-09-03","Bangalore","Electronics","Headphones","Sneha",89406.4,"Cash",5.0,16706.13,4],["1864","2025-09-04","Pune","Furniture","Chair","Ajay",30540.0,"Debit Card",0.0,8156.1,3],["1865","2025-09-04","Pune","Furniture","Sofa","Rahul",190574.25,"Cash",15.0,30105.69,5],["1866","2025-09-04","Delhi","Clothing","Jacket","Sneha",49102.65,"Cash",5.0,10232.75,3],["1867","2025-09-05","Bangalore","Clothing","Jacket","Sneha",23620.8,"Cash",5.0,3306.42,4],["1868","2025-09-05","Hyderabad","Electronics","Laptop","Pooja",73307.7,"Cash",10.0,20878.17,3],["1869","2025-09-06","Pune","Electronics","Headphones","Pooja",20246.4,"Cash",5.0,2117.69,4],["1870","2025-09-06","Pune","Electronics","Headphones","Ajay",47367.0,"Cash",5.0,5386.71,4],["1871","2025-09-06","Hyderabad","Electronics","Laptop","Ajay",90092.0,"Cash",0.0,11523.6,2],["1872","2025-09-06","Pune","Clothing","Jeans","Sneha",126694.8,"Cash",10.0,13794.92,3],["1873","2025-09-06","Bangalore","Furniture","Sofa","Sneha",179692.5,"Credit Card",5.0,42437.39,5],["1874","2025-09-07","Bangalore","Electronics","Laptop","Sneha",36504.0,"Credit Card",10.0,7024.57,1],["1875","2025-09-07","Delhi","Electronics","Laptop","Sneha",38368.15,"UPI",15.0,7675.48,1],["1876","2025-09-07","Mumbai","Furniture","Sofa","Pooja",59481.0,"Cash",0.0,13315.57,3],["1877","2025-09-07","Hyderabad","Clothing","Jacket","Rahul",73384.0,"UPI",0.0,10646.22,4],["1878","2025-09-08","Bangalore","Electronics","Headphones","Pooja",4869.0,"Credit Card",10.0,637.15,1],["1879","2025-09-08","Mumbai","Electronics","Mobile","Sneha",18516.45,"Credit Card",5.0,2855.86,1],["1880","2025-09-08","Delhi","Clothing","Jacket","Sneha",28620.35,"Debit Card",15.0,7739.38,1],["1881","2025-09-08","Bangalore","Electronics","Mobile","Ajay",32718.6,"Cash",10.0,3823.7,2],["1882","2025-09-08","Bangalore","Clothing","Jacket","Sneha",197866.0,"Cash",5.0,44832.92,5],["1883","2025-09-09","Bangalore","Furniture","Chair","Rahul",38760.0,"UPI",5.0,4457.82,4],["1884","2025-09-09","Bangalore","Clothing","T-Shirt","Rahul",7500.0,"Cash",0.0,1259.49,1],["1885","2025-09-09","Delhi","Furniture","Table","Pooja",137940.0,"UPI",0.0,35071.5,5],["1886","2025-09-09","Pune","Electronics","Headphones","Pooja",144682.75,"Debit Card",15.0,30630.44,5],["1887","2025-09-10","Pune","Furniture","Chair","Pooja",98887.4,"Cash",5.0,14774.98,4],["1888","2025-09-10","Pune","Furniture","Sofa","Ajay",42025.0,"Debit Card",0.0,10626.53,5],["1889","2025-09-10","Mumbai","Furniture","Chair","Pooja",19816.05,"Debit Card",5.0,4238.91,1],["1890","2025-09-10","Mumbai","Furniture","Chair","Rahul",14993.85,"Credit Card",5.0,3471.04,3],["1891","2025-09-11","Bangalore","Clothing","Jacket","Rahul",72675.9,"Credit Card",10.0,8744.71,3],["1892","2025-09-11","Hyderabad","Electronics","Laptop","Sneha",57420.9,"UPI",15.0,14160.72,2],["1893","2025-09-11","Hyderabad","Clothing","Jacket","Pooja",95790.0,"Cash",0.0,15533.09,2],["1894","2025-09-11","Hyderabad","Clothing","Jeans","Pooja",124604.85,"UPI",5.0,20619.87,3],["1895","2025-09-12","Delhi","Furniture","Sofa","Pooja",68778.0,"UPI",10.0,12257.54,4],["1896","2025-09-12","Mumbai","Furniture","Table","Ajay",99893.7,"Credit Card",15.0,27355.66,3],["1897","2025-09-12","Delhi","Furniture","Table","Sneha",229125.75,"UPI",5.0,52715.36,5],["1898","2025-09-13","Hyderabad","Electronics","Mobile","Pooja",1838.7,"Debit Card",10.0,406.5,1],["1899","2025-09-13","Hyderabad","Clothing","Jacket","Sneha",5287.0,"Debit Card",15.0,1572.23,5],["1900","2025-09-14","Mumbai","Electronics","Laptop","Pooja",9632.0,"UPI",0.0,1876.63,1],["1901","2025-09-14","Pune","Clothing","Jeans","Ajay",73178.0,"Debit Card",0.0,16898.84,2],["1902","2025-09-14","Delhi","Furniture","Table","Pooja",172020.0,"Cash",0.0,50777.32,4],["1903","2025-09-14","Mumbai","Electronics","Mobile","Rahul",159158.25,"Credit Card",15.0,20876.41,5],["1904","2025-09-14","Hyderabad","Furniture","Table","Ajay",29232.9,"Credit Card",10.0,7560.53,3],["1905","2025-09-15","Delhi","Electronics","Laptop","Ajay",32685.0,"Debit Card",0.0,6967.95,1],["1906","2025-09-15","Delhi","Electronics","Headphones","Ajay",16759.8,"Debit Card",10.0,2383.37,2],["1907","2025-09-16","Hyderabad","Electronics","Mobile","Sneha",31020.0,"Debit Card",0.0,4198.43,4],["1908","2025-09-16","Bangalore","Clothing","T-Shirt","Pooja",9753.75,"UPI",15.0,2190.49,3],["1909","2025-09-16","Delhi","Electronics","Laptop","Rahul",25250.05,"Credit Card",5.0,3539.37,1],["1910","2025-09-16","Pune","Electronics","Mobile","Pooja",36581.0,"UPI",0.0,5928.96,1],["1911","2025-09-16","Delhi","Electronics","Headphones","Sneha",141786.0,"Credit Card",10.0,35471.37,5],["1912","2025-09-17","Hyderabad","Furniture","Sofa","Rahul",181598.25,"Cash",15.0,30834.85,5],["1913","2025-09-17","Bangalore","Electronics","Mobile","Sneha",18918.3,"Debit Card",5.0,3330.73,1],["1914","2025-09-17","Delhi","Clothing","Jacket","Rahul",40942.8,"Debit Card",15.0,7340.68,3],["1915","2025-09-17","Delhi","Furniture","Table","Sneha",135973.5,"UPI",5.0,32145.87,5],["1916","2025-09-18","Delhi","Furniture","Sofa","Pooja",22419.6,"Debit Card",15.0,4495.5,1],["1917","2025-09-18","Delhi","Furniture","Table","Sneha",25596.0,"UPI",0.0,5856.04,2],["1918","2025-09-18","Hyderabad","Furniture","Chair","Sneha",132087.0,"Cash",0.0,13401.11,3],["1919","2025-09-18","Delhi","Furniture","Sofa","Sneha",114139.8,"Cash",10.0,17592.68,3],["1920","2025-09-18","Pune","Clothing","Jeans","Rahul",211554.0,"UPI",10.0,37615.3,5],["1921","2025-09-19","Mumbai","Clothing","Jacket","Rahul",109919.75,"Credit Card",5.0,11440.48,5],["1922","2025-09-19","Bangalore","Electronics","Laptop","Pooja",191184.0,"Debit Card",0.0,33584.18,4],["1923","2025-09-19","Bangalore","Clothing","Jeans","Sneha",53832.0,"Credit Card",0.0,9052.25,4],["1924","2025-09-20","Pune","Electronics","Headphones","Ajay",217237.5,"Cash",10.0,55853.71,5],["1925","2025-09-20","Pune","Clothing","T-Shirt","Rahul",71649.0,"UPI",5.0,18859.51,3],["1926","2025-09-20","Pune","Electronics","Headphones","Pooja",23950.45,"Cash",15.0,6410.05,1],["1927","2025-09-20","Hyderabad","Electronics","Mobile","Rahul",10828.8,"Credit Card",10.0,2391.16,4],["1928","2025-09-21","Delhi","Clothing","Jacket","Rahul",135013.05,"Cash",5.0,13871.4,3],["1929","2025-09-21","Pune","Clothing","Jacket","Rahul",27741.6,"Credit Card",10.0,5889.61,4],["1930","2025-09-22","Pune","Electronics","Headphones","Ajay",69623.5,"Credit Card",15.0,16847.13,2],["1931","2025-09-22","Hyderabad","Furniture","Chair","Pooja",29774.0,"Cash",0.0,3671.15,2],["1932","2025-09-22","Mumbai","Clothing","Jeans","Sneha",29691.0,"Cash",0.0,5258.5,1],["1933","2025-09-22","Bangalore","Furniture","Table","Pooja",2051.0,"Credit Card",0.0,210.78,1],["1934","2025-09-22","Mumbai","Furniture","Chair","Ajay",40098.6,"Credit Card",10.0,5632.61,1],["1935","2025-09-23","Pune","Furniture","Sofa","Sneha",17646.0,"Debit Card",15.0,5195.39,4],["1936","2025-09-23","Mumbai","Clothing","Jeans","Pooja",79056.0,"UPI",10.0,15889.63,3],["1937","2025-09-24","Delhi","Electronics","Headphones","Ajay",21237.25,"Cash",5.0,5378.18,5],["1938","2025-09-24","Delhi","Electronics","Headphones","Rahul",89676.0,"Cash",0.0,22179.08,2],["1939","2025-09-25","Bangalore","Furniture","Table","Pooja",49337.0,"UPI",0.0,5386.7,1],["1940","2025-09-25","Bangalore","Clothing","T-Shirt","Sneha",164485.2,"Debit Card",15.0,39417.12,4],["1941","2025-09-25","Delhi","Clothing","Jacket","Sneha",117841.5,"Debit Card",10.0,15962.1,5],["1942","2025-09-25","Mumbai","Clothing","Jacket","Pooja",3928.0,"UPI",0.0,589.14,2],["1943","2025-09-25","Mumbai","Clothing","T-Shirt","Rahul",29662.0,"Cash",0.0,4379.17,2],["1944","2025-09-26","Pune","Electronics","Laptop","Ajay",6063.9,"Cash",15.0,936.85,2],["1945","2025-09-26","Hyderabad","Electronics","Headphones","Ajay",138051.0,"Debit Card",0.0,14869.14,3],["1946","2025-09-26","Mumbai","Clothing","Jeans","Ajay",19488.3,"Debit Card",5.0,3356.07,3],["1947","2025-09-27","Bangalore","Electronics","Laptop","Rahul",21159.0,"Cash",10.0,5842.83,1],["1948","2025-09-27","Pune","Furniture","Chair","Rahul",14708.0,"Debit Card",0.0,2646.89,4],["1949","2025-09-28","Bangalore","Electronics","Headphones","Ajay",155604.0,"UPI",0.0,32553.94,4],["1950","2025-09-28","Delhi","Furniture","Chair","Rahul",22569.0,"Cash",0.0,6577.08,3],["1951","2025-09-28","Pune","Furniture","Sofa","Rahul",103572.0,"Credit Card",10.0,27009.33,3],["1952","2025-09-28","Hyderabad","Clothing","Jeans","Pooja",68527.8,"UPI",10.0,18586.86,2],["1953","2025-09-29","Mumbai","Electronics","Headphones","Ajay",124023.0,"Credit Card",0.0,17474.17,3],["1954","2025-09-29","Mumbai","Furniture","Chair","Ajay",14660.8,"UPI",15.0,1964.0,4],["1955","2025-09-29","Delhi","Clothing","Jeans","Ajay",61373.4,"Cash",15.0,11771.14,2],["1956","2025-09-29","Mumbai","Electronics","Mobile","Sneha",17470.8,"Credit Card",10.0,5075.04,1],["1957","2025-09-30","Bangalore","Electronics","Laptop","Rahul",42624.9,"Debit Card",10.0,5093.99,3],["1958","2025-09-30","Bangalore","Electronics","Headphones","Ajay",201258.75,"Debit Card",15.0,22259.94,5],["1959","2025-09-30","Hyderabad","Furniture","Table","Pooja",9571.0,"UPI",15.0,2363.08,4],["1960","2025-09-30","Mumbai","Electronics","Headphones","Rahul",148330.8,"Credit Card",10.0,37686.27,4],["1961","2025-10-01","Delhi","Furniture","Sofa","Pooja",39649.2,"Credit Card",5.0,11321.59,3],["1962","2025-10-01","Mumbai","Electronics","Laptop","Pooja",221670.0,"Cash",0.0,22978.92,5],["1963","2025-10-01","Bangalore","Furniture","Chair","Sneha",44055.9,"Credit Card",10.0,7364.93,1],["1964","2025-10-01","Hyderabad","Furniture","Chair","Rahul",68076.0,"Credit Card",10.0,19163.13,2],["1965","2025-10-01","Delhi","Furniture","Sofa","Rahul",185467.5,"Credit Card",10.0,30271.46,5],["1966","2025-10-02","Delhi","Clothing","Jacket","Sneha",73310.4,"UPI",10.0,8505.6,3],["1967","2025-10-02","Pune","Electronics","Laptop","Ajay",53609.4,"Credit Card",10.0,16032.01,2],["1968","2025-10-02","Delhi","Clothing","T-Shirt","Rahul",76428.0,"Cash",10.0,19018.1,5],["1969","2025-10-03","Delhi","Furniture","Table","Pooja",28116.3,"Debit Card",15.0,6368.05,1],["1970","2025-10-03","Mumbai","Furniture","Table","Rahul",162368.0,"Cash",0.0,45239.09,4],["1971","2025-10-03","Delhi","Electronics","Mobile","Sneha",98427.6,"Cash",10.0,26754.69,4],["1972","2025-10-03","Pune","Furniture","Table","Rahul",229170.0,"Credit Card",0.0,66126.06,5],["1973","2025-10-03","Hyderabad","Clothing","T-Shirt","Sneha",119903.55,"Cash",15.0,15394.22,3],["1974","2025-10-04","Hyderabad","Electronics","Mobile","Sneha",91555.3,"Cash",5.0,19197.76,2],["1975","2025-10-04","Delhi","Electronics","Laptop","Rahul",90407.7,"Credit Card",5.0,21231.93,2],["1976","2025-10-04","Delhi","Electronics","Headphones","Sneha",13752.15,"Cash",15.0,1979.87,3],["1977","2025-10-04","Mumbai","Electronics","Mobile","Ajay",25291.75,"UPI",15.0,2934.61,5],["1978","2025-10-05","Hyderabad","Furniture","Sofa","Rahul",9658.0,"Debit Card",0.0,2761.85,2],["1979","2025-10-05","Hyderabad","Furniture","Sofa","Sneha",21468.0,"Cash",0.0,5766.8,1],["1980","2025-10-05","Bangalore","Furniture","Sofa","Ajay",70054.2,"Credit Card",10.0,10085.98,3],["1981","2025-10-06","Hyderabad","Furniture","Chair","Sneha",2193.0,"Debit Card",0.0,235.48,1],["1982","2025-10-06","Hyderabad","Clothing","T-Shirt","Pooja",160405.6,"Credit Card",5.0,30168.26,4],["1983","2025-10-06","Pune","Clothing","T-Shirt","Pooja",56551.5,"Debit Card",10.0,12866.36,5],["1984","2025-10-06","Delhi","Furniture","Chair","Ajay",31810.4,"Credit Card",15.0,8980.93,2],["1985","2025-10-06","Mumbai","Clothing","Jeans","Pooja",64164.6,"UPI",10.0,18708.23,2],["1986","2025-10-07","Hyderabad","Clothing","Jacket","Sneha",141801.0,"UPI",0.0,37118.33,3],["1987","2025-10-07","Pune","Furniture","Table","Ajay",197885.0,"Cash",0.0,19791.06,5],["1988","2025-10-08","Pune","Clothing","T-Shirt","Sneha",98952.75,"Cash",15.0,18053.99,3],["1989","2025-10-08","Mumbai","Furniture","Table","Pooja",63207.0,"Debit Card",0.0,16887.85,3],["1990","2025-10-08","Pune","Clothing","T-Shirt","Sneha",115232.4,"Cash",10.0,20750.04,4],["1991","2025-10-08","Bangalore","Furniture","Table","Rahul",143546.4,"UPI",10.0,35911.52,4],["1992","2025-10-08","Mumbai","Electronics","Mobile","Ajay",56601.0,"Cash",5.0,11669.9,5],["1993","2025-10-09","Mumbai","Electronics","Headphones","Ajay",35676.0,"Debit Card",10.0,6752.54,2],["1994","2025-10-09","Bangalore","Clothing","Jacket","Rahul",5813.1,"UPI",10.0,953.59,3],["1995","2025-10-09","Hyderabad","Clothing","Jacket","Pooja",2694.5,"Debit Card",15.0,775.23,1],["1996","2025-10-09","Delhi","Furniture","Sofa","Ajay",93718.0,"Credit Card",0.0,20079.26,2],["1997","2025-10-09","Hyderabad","Furniture","Sofa","Pooja",51111.9,"Credit Card",5.0,7896.17,3],["1998","2025-10-10","Mumbai","Electronics","Headphones","Pooja",73221.25,"Credit Card",5.0,20681.28,5],["1999","2025-10-10","Hyderabad","Electronics","Headphones","Ajay",160310.6,"Cash",5.0,40486.87,4]];
+
+// Parse raw into objects
+const FIELDS = ['id','date','city','category','product','rep','total_sales','payment','discount','profit','units'];
+const DATA = RAW.map(r => Object.fromEntries(FIELDS.map((f,i)=>[f,r[i]])));
+
+// ─── CHART INSTANCES ────────────────────────────────────────────────────────
+let charts = {};
+
+// ─── HELPERS ────────────────────────────────────────────────────────────────
+const fmt = n => {
+  if (n >= 1e7) return '₹' + (n/1e7).toFixed(1) + 'Cr';
+  if (n >= 1e5) return '₹' + (n/1e5).toFixed(1) + 'L';
+  return '₹' + Math.round(n).toLocaleString('en-IN');
+};
+const fmtFull = n => '₹' + Math.round(n).toLocaleString('en-IN');
+const pct = (a,b) => b ? ((a/b)*100).toFixed(1)+'%' : '—';
+const groupBy = (arr, key, agg) => {
+  const m = {};
+  arr.forEach(r => {
+    const k = r[key];
+    if(!m[k]) m[k] = [];
+    m[k].push(r);
+  });
+  return Object.fromEntries(Object.entries(m).map(([k,v])=>[k, agg(v)]));
+};
+const sumBy = (arr, key) => arr.reduce((s,r)=>s+r[key],0);
+const sortDesc = (obj) => Object.entries(obj).sort((a,b)=>b[1]-a[1]);
+
+const PALETTE = ['#6c63ff','#00d4aa','#ffd166','#4fc3f7','#ff6b6b','#a78bfa','#f472b6','#34d399','#fb923c'];
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+const chartDefaults = {
+  responsive: true,
+  maintainAspectRatio: true,
+  plugins: { legend: { labels: { color: '#8891b0', font: { size: 11 }, boxWidth: 12 } }, tooltip: { backgroundColor: '#1a1d27', borderColor: '#2e3250', borderWidth: 1, titleColor: '#e8eaf6', bodyColor: '#8891b0', padding: 10 } },
+  scales: {
+    x: { ticks: { color: '#5a6080', font: { size: 11 } }, grid: { color: 'rgba(46,50,80,0.4)' }, border: { color: 'rgba(46,50,80,0.4)' } },
+    y: { ticks: { color: '#5a6080', font: { size: 11 } }, grid: { color: 'rgba(46,50,80,0.4)' }, border: { color: 'rgba(46,50,80,0.4)' } }
+  }
+};
+
+function mergeDeep(target, source) {
+  const result = { ...target };
+  for (const key in source) {
+    if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+      result[key] = mergeDeep(target[key] || {}, source[key]);
+    } else {
+      result[key] = source[key];
+    }
+  }
+  return result;
+}
+
+// ─── FILTER STATE ───────────────────────────────────────────────────────────
+let filteredData = [...DATA];
+
+function applyFilters() {
+  const city = document.getElementById('filter-city').value;
+  const cat = document.getElementById('filter-cat').value;
+  const rep = document.getElementById('filter-rep').value;
+  const from = document.getElementById('date-from').value;
+  const to = document.getElementById('date-to').value;
+
+  filteredData = DATA.filter(r => {
+    if (city && r.city !== city) return false;
+    if (cat && r.category !== cat) return false;
+    if (rep && r.rep !== rep) return false;
+    if (from && r.date < from) return false;
+    if (to && r.date > to) return false;
+    return true;
+  });
+
+  document.getElementById('record-count').textContent = filteredData.length + ' Records';
+  document.getElementById('filter-info').textContent = 'Showing ' + filteredData.length + ' of ' + DATA.length + ' orders';
+  renderAll();
+}
+
+function resetFilters() {
+  document.getElementById('filter-city').value = '';
+  document.getElementById('filter-cat').value = '';
+  document.getElementById('filter-rep').value = '';
+  document.getElementById('date-from').value = '2025-01-01';
+  document.getElementById('date-to').value = '2025-10-31';
+  applyFilters();
+}
+
+// ─── POPULATE FILTERS ───────────────────────────────────────────────────────
+function populateFilters() {
+  const cities = [...new Set(DATA.map(r=>r.city))].sort();
+  const cats = [...new Set(DATA.map(r=>r.category))].sort();
+  const reps = [...new Set(DATA.map(r=>r.rep))].sort();
+
+  const selCity = document.getElementById('filter-city');
+  const selCat = document.getElementById('filter-cat');
+  const selRep = document.getElementById('filter-rep');
+
+  cities.forEach(c => { const o = new Option(c,c); selCity.appendChild(o); });
+  cats.forEach(c => { const o = new Option(c,c); selCat.appendChild(o); });
+  reps.forEach(r => { const o = new Option(r,r); selRep.appendChild(o); });
+
+  [selCity, selCat, selRep].forEach(s => s.addEventListener('change', applyFilters));
+  document.getElementById('date-from').addEventListener('change', applyFilters);
+  document.getElementById('date-to').addEventListener('change', applyFilters);
+}
+
+// ─── KPI ─────────────────────────────────────────────────────────────────────
+function renderKPIs() {
+  const d = filteredData;
+  const totalSales = sumBy(d, 'total_sales');
+  const totalProfit = sumBy(d, 'profit');
+  const totalOrders = d.length;
+  const totalUnits = sumBy(d, 'units');
+  const aov = totalOrders ? totalSales / totalOrders : 0;
+  const margin = totalSales ? (totalProfit/totalSales*100).toFixed(1) : 0;
+
+  document.getElementById('kpi-sales').textContent = fmt(totalSales);
+  document.getElementById('kpi-sales-sub').innerHTML = '<span class="up">▲</span> ' + totalOrders + ' orders · ' + Math.round(totalUnits) + ' units sold';
+  document.getElementById('kpi-profit').textContent = fmt(totalProfit);
+  document.getElementById('kpi-profit-margin').innerHTML = '<span class="up">▲</span> Profit margin: ' + margin + '%';
+  document.getElementById('kpi-orders').textContent = totalOrders.toLocaleString();
+  document.getElementById('kpi-units').innerHTML = '<span>' + Math.round(totalUnits) + ' total units · ' + (totalOrders?(totalUnits/totalOrders).toFixed(1):0) + ' avg/order</span>';
+  document.getElementById('kpi-aov').textContent = fmt(aov);
+  document.getElementById('kpi-aov-sub').innerHTML = '<span>Avg profit/order: ' + fmt(totalOrders?totalProfit/totalOrders:0) + '</span>';
+}
+
+// ─── CHART UTILS ─────────────────────────────────────────────────────────────
+function makeChart(id, type, data, options={}) {
+  if (charts[id]) { charts[id].destroy(); }
+  const ctx = document.getElementById(id).getContext('2d');
+  charts[id] = new Chart(ctx, { type, data, options: mergeDeep(JSON.parse(JSON.stringify(chartDefaults)), options) });
+  return charts[id];
+}
+
+// ─── MONTHLY TREND ───────────────────────────────────────────────────────────
+function renderMonthly() {
+  const byMonth = {};
+  filteredData.forEach(r => {
+    const m = r.date.substring(0,7);
+    if(!byMonth[m]) byMonth[m] = {sales:0,profit:0};
+    byMonth[m].sales += r.total_sales;
+    byMonth[m].profit += r.profit;
+  });
+  const labels = Object.keys(byMonth).sort().map(m => MONTHS[parseInt(m.split('-')[1])-1] + ' ' + m.split('-')[0].slice(2));
+  const salesVals = Object.keys(byMonth).sort().map(m => Math.round(byMonth[m].sales));
+  const profitVals = Object.keys(byMonth).sort().map(m => Math.round(byMonth[m].profit));
+
+  makeChart('chart-monthly','line',{
+    labels,
+    datasets: [
+      { label:'Sales', data: salesVals, borderColor: '#6c63ff', backgroundColor: 'rgba(108,99,255,0.08)', tension: 0.4, fill: true, pointBackgroundColor: '#6c63ff', pointRadius: 4, pointHoverRadius: 6, borderWidth: 2 },
+      { label:'Profit', data: profitVals, borderColor: '#00d4aa', backgroundColor: 'rgba(0,212,170,0.08)', tension: 0.4, fill: true, pointBackgroundColor: '#00d4aa', pointRadius: 4, pointHoverRadius: 6, borderWidth: 2 }
+    ]
+  },{
+    plugins: { legend: { display: true, position:'top' }, tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + fmt(ctx.raw) } } },
+    scales: { y: { ticks: { callback: v => fmt(v) } } }
+  });
+}
+
+// ─── CITY CHART ──────────────────────────────────────────────────────────────
+function renderCity() {
+  const byCity = {};
+  filteredData.forEach(r => {
+    if(!byCity[r.city]) byCity[r.city] = {sales:0,profit:0};
+    byCity[r.city].sales += r.total_sales;
+    byCity[r.city].profit += r.profit;
+  });
+  const sorted = Object.entries(byCity).sort((a,b)=>b[1].sales-a[1].sales);
+  const labels = sorted.map(x=>x[0]);
+  const sales = sorted.map(x=>Math.round(x[1].sales));
+  const profit = sorted.map(x=>Math.round(x[1].profit));
+
+  makeChart('chart-city','bar',{
+    labels,
+    datasets: [
+      { label:'Sales', data: sales, backgroundColor: 'rgba(108,99,255,0.8)', borderRadius: 6 },
+      { label:'Profit', data: profit, backgroundColor: 'rgba(0,212,170,0.8)', borderRadius: 6 }
+    ]
+  },{
+    plugins: { legend: { display: true }, tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + fmt(ctx.raw) } } },
+    scales: { x: { stacked: false }, y: { ticks: { callback: v => fmt(v) } } }
+  });
+}
+
+// ─── CATEGORY CHART ──────────────────────────────────────────────────────────
+function renderCategory() {
+  const byCat = {};
+  filteredData.forEach(r => {
+    if(!byCat[r.category]) byCat[r.category] = {sales:0,profit:0,orders:0};
+    byCat[r.category].sales += r.total_sales;
+    byCat[r.category].profit += r.profit;
+    byCat[r.category].orders++;
+  });
+  const sorted = Object.entries(byCat).sort((a,b)=>b[1].sales-a[1].sales);
+  const labels = sorted.map(x=>x[0]);
+  const sales = sorted.map(x=>Math.round(x[1].sales));
+  const profit = sorted.map(x=>Math.round(x[1].profit));
+
+  makeChart('chart-category','bar',{
+    labels,
+    datasets: [
+      { label:'Sales', data: sales, backgroundColor: ['rgba(255,209,102,0.85)','rgba(79,195,247,0.85)','rgba(255,107,107,0.85)'], borderRadius: 8 },
+      { label:'Profit', data: profit, backgroundColor: ['rgba(255,209,102,0.4)','rgba(79,195,247,0.4)','rgba(255,107,107,0.4)'], borderRadius: 8 }
+    ]
+  },{
+    plugins: { tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + fmt(ctx.raw) } } },
+    scales: { y: { ticks: { callback: v => fmt(v) } } }
+  });
+}
+
+// ─── SALES REP ───────────────────────────────────────────────────────────────
+function renderRep() {
+  const byRep = {};
+  filteredData.forEach(r => {
+    if(!byRep[r.rep]) byRep[r.rep] = {sales:0,profit:0,orders:0};
+    byRep[r.rep].sales += r.total_sales;
+    byRep[r.rep].profit += r.profit;
+    byRep[r.rep].orders++;
+  });
+  const sorted = Object.entries(byRep).sort((a,b)=>b[1].sales-a[1].sales);
+  const labels = sorted.map(x=>x[0]);
+  const sales = sorted.map(x=>Math.round(x[1].sales));
+  const profit = sorted.map(x=>Math.round(x[1].profit));
+
+  makeChart('chart-rep','bar',{
+    labels,
+    datasets: [
+      { label:'Sales', data: sales, backgroundColor: PALETTE.slice(0,labels.length).map(c=>c+'cc'), borderRadius: 6, borderSkipped: false },
+      { label:'Profit', data: profit, backgroundColor: PALETTE.slice(0,labels.length).map(c=>c+'55'), borderRadius: 6, borderSkipped: false }
+    ]
+  },{
+    plugins: { tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + fmt(ctx.raw) } } },
+    scales: { y: { ticks: { callback: v => fmt(v) } } }
+  });
+}
+
+// ─── PAYMENT ─────────────────────────────────────────────────────────────────
+function renderPayment() {
+  const byPay = {};
+  filteredData.forEach(r => {
+    byPay[r.payment] = (byPay[r.payment]||0)+1;
+  });
+  const sorted = Object.entries(byPay).sort((a,b)=>b[1]-a[1]);
+
+  makeChart('chart-payment','doughnut',{
+    labels: sorted.map(x=>x[0]),
+    datasets:[{ data: sorted.map(x=>x[1]), backgroundColor: ['#6c63ff','#00d4aa','#ffd166','#4fc3f7'], borderWidth: 2, borderColor: '#1a1d27', hoverOffset: 8 }]
+  },{
+    aspectRatio: 1,
+    plugins: { legend: { position:'right', labels:{color:'#8891b0',font:{size:11},padding:12} }, tooltip: { callbacks: { label: ctx => ctx.label + ': ' + ctx.raw + ' orders (' + (ctx.raw/filteredData.length*100).toFixed(1) + '%)' } } },
+    scales: { x: { display:false }, y: { display:false } }
+  });
+}
+
+// ─── PROFITABILITY BUBBLE ────────────────────────────────────────────────────
+function renderProfitability() {
+  const byCat = {};
+  filteredData.forEach(r => {
+    if(!byCat[r.category]) byCat[r.category] = {sales:0,profit:0,orders:0};
+    byCat[r.category].sales += r.total_sales;
+    byCat[r.category].profit += r.profit;
+    byCat[r.category].orders++;
+  });
+
+  const datasets = Object.entries(byCat).map(([cat,v],i)=>({
+    label: cat,
+    data: [{ x: Math.round(v.sales/1e5), y: Math.round(v.profit/1e5), r: Math.max(8, Math.min(30, v.orders/3)) }],
+    backgroundColor: PALETTE[i]+'99',
+    borderColor: PALETTE[i],
+    borderWidth: 1.5
+  }));
+
+  makeChart('chart-profitability','bubble',{datasets},{
+    plugins: { legend: { display:true }, tooltip: { callbacks: { label: ctx => ctx.dataset.label + ' · Sales: ₹' + ctx.raw.x + 'L · Profit: ₹' + ctx.raw.y + 'L' } } },
+    scales: {
+      x: { title: { display:true, text:'Sales (₹ Lakhs)', color:'#5a6080', font:{size:10} }, ticks: { callback: v=>v+'L' } },
+      y: { title: { display:true, text:'Profit (₹ Lakhs)', color:'#5a6080', font:{size:10} }, ticks: { callback: v=>v+'L' } }
+    }
+  });
+}
+
+// ─── DISCOUNT IMPACT ─────────────────────────────────────────────────────────
+function renderDiscount() {
+  const buckets = {'0%':{profit:0,sales:0,n:0}, '5%':{profit:0,sales:0,n:0}, '10%':{profit:0,sales:0,n:0}, '15%':{profit:0,sales:0,n:0}};
+  filteredData.forEach(r => {
+    const k = r.discount + '%';
+    if(buckets[k]) { buckets[k].profit += r.profit; buckets[k].sales += r.total_sales; buckets[k].n++; }
+  });
+
+  const labels = Object.keys(buckets);
+  const avgMargin = labels.map(k => buckets[k].sales ? +(buckets[k].profit/buckets[k].sales*100).toFixed(1) : 0);
+  const avgProfit = labels.map(k => buckets[k].n ? Math.round(buckets[k].profit/buckets[k].n) : 0);
+
+  makeChart('chart-discount','bar',{
+    labels,
+    datasets: [
+      { label: 'Avg Profit Margin (%)', data: avgMargin, backgroundColor: ['rgba(0,212,170,0.85)','rgba(255,209,102,0.85)','rgba(79,195,247,0.85)','rgba(255,107,107,0.85)'], borderRadius: 8, yAxisID: 'y' },
+      { label: 'Avg Profit per Order', data: avgProfit, type: 'line', borderColor: '#6c63ff', backgroundColor: 'rgba(108,99,255,0.1)', tension: 0.3, pointRadius: 5, borderWidth: 2, yAxisID: 'y1' }
+    ]
+  },{
+    plugins: { legend: { display:true }, tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + (ctx.datasetIndex===0 ? ctx.raw+'%' : fmt(ctx.raw)) } } },
+    scales: {
+      y: { position:'left', ticks: { callback: v=>v+'%', color:'#5a6080' }, title: { display:true, text:'Margin %', color:'#5a6080', font:{size:10} } },
+      y1: { position:'right', ticks: { callback: v=>fmt(v), color:'#5a6080' }, grid: { drawOnChartArea:false }, title: { display:true, text:'Avg Profit', color:'#5a6080', font:{size:10} } }
+    }
+  });
+}
+
+// ─── PRODUCT TABLES ──────────────────────────────────────────────────────────
+function renderProductTables() {
+  const byProd = {};
+  filteredData.forEach(r => {
+    if(!byProd[r.product]) byProd[r.product] = {sales:0,profit:0,orders:0};
+    byProd[r.product].sales += r.total_sales;
+    byProd[r.product].profit += r.profit;
+    byProd[r.product].orders++;
+  });
+
+  const sorted = Object.entries(byProd).sort((a,b)=>b[1].sales-a[1].sales);
+  const maxSales = sorted[0]?.[1]?.sales || 1;
+  const top5 = sorted.slice(0,5);
+  const bottom5 = sorted.slice(-5).reverse();
+
+  const renderTable = (id, items, isTop) => {
+    const t = document.getElementById(id);
+    const ranks = isTop ? ['rank-1','rank-2','rank-3','rank-n','rank-n'] : ['rank-n','rank-n','rank-n','rank-n','rank-n'];
+    const emojiRank = isTop ? ['1','2','3','4','5'] : ['↓','↓','↓','↓','↓'];
+    t.innerHTML = `<thead><tr><th>#</th><th>Product</th><th>Total Sales</th><th>Profit</th><th>Orders</th><th>Margin</th></tr></thead><tbody>` +
+      items.map(([prod,v],i) => {
+        const margin = v.sales ? (v.profit/v.sales*100).toFixed(1) : 0;
+        const barW = Math.round(v.sales/maxSales*120);
+        const mClass = margin>20?'margin-high':margin>10?'margin-mid':'margin-low';
+        return `<tr>
+          <td><span class="rank-badge ${ranks[i]}">${emojiRank[i]}</span></td>
+          <td><strong style="color:var(--text)">${prod}</strong></td>
+          <td><div class="bar-cell"><div class="mini-bar ${isTop?'':'red'}" style="width:${barW}px"></div><span>${fmt(v.sales)}</span></div></td>
+          <td>${fmt(v.profit)}</td>
+          <td>${v.orders}</td>
+          <td><span class="profit-margin ${mClass}">${margin}%</span></td>
+        </tr>`;
+      }).join('') + '</tbody>';
+  };
+
+  renderTable('table-top5', top5, true);
+  renderTable('table-bottom5', bottom5, false);
+}
+
+// ─── RENDER ALL ──────────────────────────────────────────────────────────────
+function renderAll() {
+  renderKPIs();
+  renderMonthly();
+  renderCity();
+  renderCategory();
+  renderRep();
+  renderPayment();
+  renderProfitability();
+  renderDiscount();
+  renderProductTables();
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  Chart.defaults.color = '#8891b0';
+  Chart.defaults.borderColor = 'rgba(46,50,80,0.4)';
+
+  populateFilters();
+  renderAll();
+
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('app').classList.add('fade-in');
+});
+</script>
+</body>
+</html>
